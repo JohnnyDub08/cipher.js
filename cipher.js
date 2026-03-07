@@ -33,7 +33,7 @@
  * - Sequence & Parallel
  * - Easing, Loop, Delay, Speed, Direction
  * - Pause / Resume / Reverse
-
+**/
 
 (function(global) {
     'use strict';
