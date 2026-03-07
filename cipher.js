@@ -1,6 +1,6 @@
 /**
  * cipher.js v2.1.1
- * Lightweight ASCII Evolution Engine
+ * Lightweight DOM Char Glitch
  * Zero dependencies · ~3kb gzipped
  *
  * MIT License
@@ -33,37 +33,7 @@
  * - Sequence & Parallel
  * - Easing, Loop, Delay, Speed, Direction
  * - Pause / Resume / Reverse
- *
- * CHANGELOG v2.1.1:
- * - FIX:  Race condition — added WeakMap animation registry. Starting a new animation
- *         on an element now stops any currently running one first, preventing competing
- *         rAF loops writing to innerText simultaneously (flicker + perf hit).
- * - PERF: isWhitespace now uses charCode comparison (charCode <= 32) — avoids 3
- *         string equality checks per character in hot loops like waterfall/wave.
- * - NOTE: sequence() was flagged as broken in external review — it is NOT. The switch
- *         + next() pattern is correct. The suggested onComplete-injection rewrite would
- *         break sync actions (encrypt, reset) that don't accept onComplete. No change.
- *
- * CHANGELOG v2.1.0:
- * - PERF: mutateChar now uses a prebuilt Map<char, family> for O(1) family lookup
- *         instead of iterating all families on every character mutation.
- * - FIX:  startDegradation now uses FinalizationRegistry to auto-clear the interval
- *         if the element is GC'd without an explicit stopDegradation() call.
- * - ADD:  aria-hidden="true" set on element during encryption, removed on decrypt/reset.
- *         Prevents screenreaders from reading encrypted garbage.
- * - ADD:  onUpdate callback now documented and exposed on all public animation functions.
- *         Use it for audio-sync, visual triggers, or external progress tracking.
- *
- * CHANGELOG v2.0.1:
- * - FIX: Animation._begin() was calling _tick() without a timestamp → NaN elapsed
- *        → rawProgress never < 1 → complete() fired on frame 0. All animations broken.
- * - FIX: Removed dead `seeds` array in decrypt() (allocated, never read).
- * - FIX: Loop re-entry used two separate performance.now() calls causing drift.
- * - FIX: black-ice wall pattern had inconsistent leading whitespace (line 1 off by 1 space).
- * - FIX: laughing-man wall pattern was horizontally asymmetric (chin line unbalanced).
- * - ADD: vortex, brownian, wave, pingpong styles (were listed in header but missing).
- * - CLEAN: modes export simplified — was using redundant OR conditions.
- */
+
 
 (function(global) {
     'use strict';
