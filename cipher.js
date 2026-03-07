@@ -87,7 +87,7 @@
     const wallPatterns = {
         // FIX: rebalanced to be horizontally symmetric
         'laughing-man':
-`   ▄▄▄▄▄▄▄
+`    ▄▄▄▄▄
    █ ◙   ◙ █
    █   ◡   █
     ▀▄▄▄▄▄▀`,
