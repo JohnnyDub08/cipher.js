@@ -1,9 +1,9 @@
 🔐 cipher.js
 
-Lightweight ASCII Evolution Engine — 2.8kb gzipped
-Zero dependencies · Cyberpunk Modes · 18 Charsets · 7 Animation Styles
+Animated ASCII cipher effects for the DOM
+Zero dependencies · 18 Charsets · 7 Animation Styles
 
-Transform text into living ASCII art – degrade, encrypt, and reveal with style.
+Transform text into living ASCII art – degrade, encrypt, animate.
 
 ✨ Features
 
