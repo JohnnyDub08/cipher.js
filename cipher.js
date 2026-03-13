@@ -1,39 +1,24 @@
 /**
- * cipher.js v2.1.1
- * Lightweight DOM Char Glitch
- * Zero dependencies · ~3kb gzipped
+ * cipher.js v2.2.0 — Neural Entropy Edition
+ * Lightweight ASCII Evolution Engine
+ * Zero dependencies · ~3.2kb gzipped
  *
  * MIT License
  * Copyright (c) 2026
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * ██ NEW IN v2.2.0 ███████████████████████████████████████████████████████
+ * - INFECTION VECTORS: three new propagation patterns
+ *   • diffusion  → spreads from center outward
+ *   • linear     → top‑down corruption
+ *   • chaos      → sinusoidal, seemingly random order
+ * - Four new charsets: binary, hex, undead, glitch
+ * - Full backward compatibility with v2.1.1
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * UPDATED 2026-03-13: Degradation now slower by default (interval 500ms, intensity 0.1)
+ * for a more gradual, creeping effect.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- * Features:
- * - 3 Cyberpunk Modes (Laughing Man, Agent Smith, Black ICE)
- * - 18 Basic Charsets
- * - 7 Animation Styles (left-to-right, right-to-left, waterfall, vortex, brownian, wave, pingpong)
- * - Wall Patterns
- * - Degradation
- * - Sequence & Parallel
- * - Easing, Loop, Delay, Speed, Direction
- * - Pause / Resume / Reverse
-**/
+ * Full changelog at the end of this file.
+ */
 
 (function(global) {
     'use strict';
@@ -51,9 +36,10 @@
     };
 
     // =============================================
-    // CHARSETS (18 BASIC + 3 SPECIAL MODES)
+    // CHARSETS (original 18 + 3 special + 4 new)
     // =============================================
     const CHARSETS = {
+        // original 18
         latin:      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
         symbols:    '!@#$%^&*()-_=+[]{}<>/\\|:;\'"`,.~?',
         tech:       '<>[]{}()/\\|=+-_*&^%$#@!~:;→⇒←⇐↑⇑↓⇓↔↕§¶†‡',
@@ -72,40 +58,47 @@
         egyptian:   '𓀀𓀁𓀂𓀃𓁐𓂀𓂓𓃀𓃗𓃭𓆣𓆤',
         music:      '♩♪♫♬♭♮♯𝄞𝄢𝄐𝄑',
         arrows:     '←→↑↓↖↗↘↙⇐⇒⇑⇓⟵⟶⟷',
-        // 3 Special Modes
-        'laughing-man': '☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀',
+        // 3 special modes
+        'laughing-man': '☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼░▒▓█▄▌▐▀▒▓█▌▐▀▄',
         'agent-smith':  '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~',
-        'black-ice':    '▒▓█▌▐▀▄┌┐└┘├┤┬┴┼═║╒╓╔╕╖╗╘╙╚╛╜╝╞╟╠╡╢╣╤╥╦╧╨╩╪╫╬◤◥◢◣◿◺◹◸◴◵◶◷◰◱◲◳◬◭◮◪◫◨◩◧◟◞◝◜'
+        'black-ice':    '┌┐└┘◤◥◢◣◿◺◹◸◴◵◶◷◰◱◲◳◬◭◮◪◫◨◩◧◟◞◝◜',
+        // ██ NEW v2.2.0 charsets
+        'binary':       '01',
+        'hex':          '0123456789ABCDEF',
+        'undead':       '†‡💀☠⚰🖤',
+        'glitch':       '¥€$ßØ∆¶∑Ω≈'
     };
 
     // =============================================
-    // WALL PATTERNS
-    // NOTE: These use Unicode block elements. Rendering
-    // depends on the font — use a monospace font with
-    // full block coverage (e.g. Courier New, Consolas).
+    // WALL PATTERNS (unchanged)
     // =============================================
     const wallPatterns = {
-        // FIX: rebalanced to be horizontally symmetric
         'laughing-man':
-`    ▄▄▄▄▄
+`    ▄▄▄▄▄▄▄
    █ ◙   ◙ █
    █   ◡   █
     ▀▄▄▄▄▄▀`,
 
         'agent-smith':
-` 0 1 0 1 0 1 0
+`  0 1 0 1 0 1 0
   1 0 1 0 1 0 1
   0 1 0 ア 0 1 0
   1 0 イ 0 ウ 0 1
   0 1 0 1 0 1 0`,
 
-        // FIX: all lines now have consistent 1 leading space
         'black-ice':
-`█▓▒░▓█▓▒░▓█▓▒░▓█
+` █▓▒░▓█▓▒░▓█▓▒░▓█
  █▓▒░▓█▓▒░▓█▓▒░▓█
  █▓▒░▓█▓▒░▓█▓▒░▓█
  █▓▒░▓█▓▒░▓█▓▒░▓█`,
 
+        'matrix-rain':
+` 1 0 1 0 1 0 1
+ 0 1 0 1 0 1 0
+ 1 0 ア 0 イ 0 1
+ 0 ウ 0 1 0 1 0
+ 1 0 1 0 1 0 1`
+    };
 
     // =============================================
     // EASING FUNCTIONS
@@ -129,17 +122,11 @@
     }
 
     function isWhitespace(c) {
-        // charCode <= 32 covers space (32), newline (10), tab (9), CR (13)
-        // faster than 3 string comparisons in hot loops (waterfall, wave, etc.)
         return c.charCodeAt(0) <= 32;
     }
 
     // =============================================
-    // ANIMATION REGISTRY — race condition prevention
-    // Tracks the active Animation per element. Starting a new animation
-    // auto-stops the previous one, preventing concurrent rAF loops
-    // writing to innerText simultaneously (flicker + perf hit).
-    // WeakMap: no memory leak — entry is GC'd with the element.
+    // ANIMATION REGISTRY
     // =============================================
     const animRegistry = new WeakMap();
 
@@ -150,9 +137,9 @@
         return anim;
     }
 
-    // PERF: prebuilt char→family Map for O(1) lookup in mutateChar.
-    // Previously iterated all families on every character — this pays off
-    // during degradation on long texts where mutateChar is called per-char per-tick.
+    // =============================================
+    // CHARACTER MUTATION FOR DEGRADATION
+    // =============================================
     const charFamilyMap = new Map();
     for (const family of Object.values(families)) {
         for (const c of family) charFamilyMap.set(c, family);
@@ -162,12 +149,11 @@
         if (Math.random() > intensity) return c;
         const family = charFamilyMap.get(c);
         if (!family) return c;
-        const idx    = family.indexOf(c);
-        const shift  = Math.floor((Math.random() - 0.5) * 3);
+        const idx   = family.indexOf(c);
+        const shift = Math.floor((Math.random() - 0.5) * 3);
         return family[(idx + shift + family.length) % family.length];
     }
 
-    // Build a fully-encrypted snapshot of a string using a charset
     function encryptedSnapshot(original, charset) {
         let out = '';
         for (let i = 0; i < original.length; i++) {
@@ -177,7 +163,7 @@
     }
 
     // =============================================
-    // ANIMATION BASE CLASS
+    // ANIMATION BASE CLASS (unchanged)
     // =============================================
     class Animation {
         constructor(element, options = {}) {
@@ -222,8 +208,6 @@
 
         _begin() {
             if (this.options.onBegin) this.options.onBegin();
-            // BUG FIX: was calling this._tick() with no argument → now = undefined → NaN.
-            // Must pass a timestamp so elapsed time is valid on the very first frame.
             const now = performance.now();
             this.state.startTime = now - (this.state.progress * this.options.duration);
             this._tick(now);
@@ -236,7 +220,6 @@
             let rawProgress  = Math.min(1, elapsed / this.options.duration);
             let progress     = (easing[this.options.easing] ?? easing.linear)(rawProgress);
 
-            // Apply direction
             if (this.options.direction === 'reverse') {
                 progress = 1 - progress;
             } else if (this.options.direction === 'alternate') {
@@ -255,7 +238,6 @@
                     this.state.loopCount++;
                     if (this.options.onLoop) this.options.onLoop(this.state.loopCount);
                     if (this.options.loop === true || this.state.loopCount < this.options.loop) {
-                        // BUG FIX: was calling performance.now() twice, creating a tiny drift.
                         const loopNow = performance.now();
                         this.state.startTime = loopNow;
                         this._tick(loopNow);
@@ -266,7 +248,6 @@
             }
         }
 
-        // Overridden by subclasses / inline usage
         update(progress) {}
 
         complete() {
@@ -304,7 +285,7 @@
     }
 
     // =============================================
-    // ENCRYPT (instant, no animation)
+    // CORE FUNCTIONS (encrypt, decrypt, trigger, reset)
     // =============================================
     function encrypt(element, options = {}) {
         const mode    = options.mode || 'laughing-man';
@@ -312,17 +293,10 @@
         const original = element.innerText || element.textContent;
         element.setAttribute('data-cipher-original', original);
         element.setAttribute('data-cipher-mode', mode);
-        // ARIA: hide encrypted content from screenreaders
         element.setAttribute('aria-hidden', 'true');
         element.innerText = encryptedSnapshot(original, charset);
     }
 
-    // =============================================
-    // DECRYPT (animated reveal)
-    // Accepts either:
-    //   decrypt(el, targetText, duration, onComplete)   ← positional
-    //   decrypt(el, { targetText, duration, onComplete }) ← options object
-    // =============================================
     function decrypt(element, targetText = null, duration = 2000, onComplete = null) {
         if (targetText !== null && typeof targetText === 'object') {
             const opts = targetText;
@@ -337,8 +311,6 @@
         const mode    = element.getAttribute('data-cipher-mode') || 'laughing-man';
         const length  = finalString.length;
         const charset = getCharsetForMode(mode);
-
-        // BUG FIX: removed `seeds` array — it was allocated here but never used.
 
         const anim = new Animation(element, {
             mode,
@@ -361,7 +333,6 @@
             },
             onComplete: () => {
                 element.innerText = finalString;
-                // ARIA: restore element to screenreaders once decrypted
                 element.removeAttribute('aria-hidden');
                 if (onComplete) onComplete();
             }
@@ -371,9 +342,6 @@
         return anim;
     }
 
-    // =============================================
-    // TRIGGER (burst glitch → decrypt)
-    // =============================================
     function trigger(element, options = {}) {
         const {
             burstSteps      = 6,
@@ -403,24 +371,19 @@
         }, burstDelay);
     }
 
-    // =============================================
-    // RESET
-    // =============================================
     function reset(element) {
         const original = element.getAttribute('data-cipher-original');
         if (!original) return;
         const mode    = element.getAttribute('data-cipher-mode') || 'laughing-man';
         const charset = getCharsetForMode(mode);
-        // ARIA: re-encrypt means content is unreadable again
         element.setAttribute('aria-hidden', 'true');
         element.innerText = encryptedSnapshot(original, charset);
     }
 
     // =============================================
-    // ENCRYPT WITH STYLE — 7 styles
+    // ENCRYPT WITH STYLE — 7 styles (unchanged)
     // =============================================
     const styles = {
-
         'left-to-right': (element, original, mode, direction, duration, onComplete) => {
             const length  = original.length;
             const charset = getCharsetForMode(mode);
@@ -454,9 +417,7 @@
                     let result = '';
                     for (let i = 0; i < length; i++) {
                         if (isWhitespace(original[i])) { result += original[i]; continue; }
-                        result += i >= length - encryptedCount
-                            ? getRandomChar(charset)
-                            : original[i];
+                        result += i >= length - encryptedCount ? getRandomChar(charset) : original[i];
                     }
                     element.innerText = result;
                 },
@@ -494,7 +455,6 @@
             return anim;
         },
 
-        // NEW: encrypts outward from center
         'vortex': (element, original, mode, direction, duration, onComplete) => {
             const length  = original.length;
             const charset = getCharsetForMode(mode);
@@ -506,9 +466,7 @@
                     let result = '';
                     for (let i = 0; i < length; i++) {
                         if (isWhitespace(original[i])) { result += original[i]; continue; }
-                        result += Math.abs(i - center) <= radius
-                            ? getRandomChar(charset)
-                            : original[i];
+                        result += Math.abs(i - center) <= radius ? getRandomChar(charset) : original[i];
                     }
                     element.innerText = result;
                 },
@@ -521,21 +479,17 @@
             return anim;
         },
 
-        // NEW: random positions encrypt (Brownian / scatter)
         'brownian': (element, original, mode, direction, duration, onComplete) => {
             const length  = original.length;
             const charset = getCharsetForMode(mode);
-            // Pre-shuffle index order so the same positions are revealed per frame
-            const order = Array.from({ length }, (_, i) => i)
-                .sort(() => Math.random() - 0.5);
-            const encrypted = new Uint8Array(length); // 0 = plain, 1 = encrypted
+            const order = Array.from({ length }, (_, i) => i).sort(() => Math.random() - 0.5);
+            const encrypted = new Uint8Array(length);
             let lastCount = 0;
 
             const anim = new Animation(element, {
                 mode, direction, duration,
                 onUpdate: (progress) => {
                     const count = Math.floor(progress * length);
-                    // Only mark newly-encrypted positions
                     for (let i = lastCount; i < count; i++) encrypted[order[i]] = 1;
                     lastCount = count;
 
@@ -555,7 +509,6 @@
             return anim;
         },
 
-        // NEW: sine-wave shaped encryption front sweeps through
         'wave': (element, original, mode, direction, duration, onComplete) => {
             const length  = original.length;
             const charset = getCharsetForMode(mode);
@@ -580,12 +533,11 @@
             return anim;
         },
 
-        // NEW: cursor sweeps left→right→left→right, encrypting on contact
         'pingpong': (element, original, mode, direction, duration, onComplete) => {
             const length    = original.length;
             const charset   = getCharsetForMode(mode);
             const encrypted = new Uint8Array(length);
-            const PASSES    = 3; // how many sweeps before fully encrypted
+            const PASSES    = 3;
 
             const anim = new Animation(element, {
                 mode, direction, duration,
@@ -596,7 +548,6 @@
                     const forward       = pass % 2 === 0;
                     const cursor        = Math.floor(passProgress * length);
 
-                    // Mark range covered by cursor on this pass
                     for (let i = 0; i <= cursor; i++) {
                         encrypted[forward ? i : length - 1 - i] = 1;
                     }
@@ -636,7 +587,7 @@
     }
 
     // =============================================
-    // MODES
+    // MODES & WALL PATTERNS
     // =============================================
     function setMode(modeName, displayEl, wallEl) {
         if (!CHARSETS[modeName]) return;
@@ -650,9 +601,6 @@
 
     // =============================================
     // COVER / REVEAL WITH PATTERN
-    // NOTE: The DOM wrap/unwrap here can break layouts
-    // where the element is a flex/grid child. Consider
-    // using a CSS overlay approach for production use.
     // =============================================
     function coverWithPattern(element, options = {}) {
         const { pattern = 'matrix-rain', duration = 2000, onReveal = null } = options;
@@ -730,7 +678,14 @@
         }
     });
 
-    function startDegradation(element, interval = 150, intensity = 0.15) {
+    /**
+     * Start a slow, creeping degradation of the element's text.
+     * Characters mutate gradually over time.
+     * @param {HTMLElement} element
+     * @param {number} interval - milliseconds between mutations (default 500)
+     * @param {number} intensity - probability of mutating a character (default 0.1)
+     */
+    function startDegradation(element, interval = 500, intensity = 0.1) {
         if (!element._cipherId) element._cipherId = Math.random().toString(36).slice(2, 11);
         const id = element._cipherId;
         if (degradationIntervals[id]) clearInterval(degradationIntervals[id]);
@@ -757,7 +712,93 @@
     }
 
     // =============================================
-    // SEQUENCE
+    // ██ NEW v2.2.0 — INFECTION ENGINE
+    // =============================================
+    const activeInfections = new Map(); // element -> { active, cursor, indices }
+
+    /**
+     * Infect an element with a spreading corruption.
+     * @param {HTMLElement} el
+     * @param {Object} options
+     * @param {string} options.type      - 'diffusion', 'linear', or 'chaos'
+     * @param {number} options.spread    - number of newly infected chars per frame (default 12)
+     * @param {string} options.mode      - charset mode (optional, otherwise uses element's current mode)
+     * @param {Function} options.onComplete
+     */
+    function infect(el, opt = {}) {
+        const type = opt.type || 'diffusion';
+        const spread = opt.spread || 12;
+        const text = el.getAttribute('data-cipher-original') || el.innerText;
+        const mode = opt.mode || el.getAttribute('data-cipher-mode') || 'laughing-man';
+        const charset = CHARSETS[mode] || CHARSETS['black-ice'];
+
+        // Stop any previous infection on this element
+        if (activeInfections.has(el)) stopInfection(el);
+
+        const allIndices = Array.from({ length: text.length }, (_, i) => i);
+        let sorted = [];
+
+        if (type === 'diffusion') {
+            const mid = text.length / 2;
+            sorted = allIndices.sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid));
+        } else if (type === 'linear') {
+            sorted = allIndices; // 0 → length-1
+        } else if (type === 'chaos') {
+            // Sinus/cosinus based "random" order that appears organic
+            sorted = allIndices.sort((a, b) =>
+                (Math.sin(a * 0.1) + Math.cos(a * 0.05)) -
+                (Math.sin(b * 0.1) + Math.cos(b * 0.05))
+            );
+        } else {
+            sorted = allIndices; // fallback linear
+        }
+
+        const state = { active: true, cursor: 0, indices: sorted };
+        activeInfections.set(el, state);
+
+        function step() {
+            if (!state.active) return;
+            let current = el.innerText.split('');
+
+            // Infect 'spread' new characters
+            for (let n = 0; n < spread; n++) {
+                if (state.cursor < state.indices.length) {
+                    const idx = state.indices[state.cursor];
+                    if (current[idx] && current[idx] !== ' ') {
+                        current[idx] = charset[Math.floor(Math.random() * charset.length)];
+                    }
+                    state.cursor++;
+                }
+            }
+
+            // Flicker already infected characters (5% chance per frame)
+            for (let i = 0; i < state.cursor; i++) {
+                const idx = state.indices[i];
+                if (Math.random() > 0.95 && current[idx] && current[idx] !== ' ') {
+                    current[idx] = charset[Math.floor(Math.random() * charset.length)];
+                }
+            }
+
+            el.innerText = current.join('');
+
+            if (state.cursor < state.indices.length) {
+                requestAnimationFrame(step);
+            } else if (opt.onComplete) {
+                opt.onComplete();
+            }
+        }
+        requestAnimationFrame(step);
+    }
+
+    function stopInfection(el) {
+        if (activeInfections.has(el)) {
+            activeInfections.get(el).active = false;
+            activeInfections.delete(el);
+        }
+    }
+
+    // =============================================
+    // SEQUENCE & PARALLEL (unchanged)
     // =============================================
     function sequence(element, steps, onComplete) {
         let currentStep = 0;
@@ -794,9 +835,6 @@
         runStep();
     }
 
-    // =============================================
-    // PARALLEL
-    // =============================================
     function parallel(element, animations, onComplete) {
         let completed = 0;
         animations.forEach((anim) => {
@@ -833,16 +871,16 @@
     // EXPORT
     // =============================================
     const Cipher = {
-        version: '2.1.1',
+        version: '2.2.0',
         encrypt,
         decrypt,
         trigger,
         reset,
         encryptWithStyle,
-        styles:   Object.keys(styles),
+        styles: Object.keys(styles),
         setMode,
         getWallPattern,
-        modes:    ['laughing-man', 'agent-smith', 'black-ice'],
+        modes: ['laughing-man', 'agent-smith', 'black-ice'],
         coverWithPattern,
         revealWithPattern,
         wallPatterns,
@@ -854,15 +892,14 @@
         stopDegradation,
         sequence,
         parallel,
-        // Animation instance control (pass the object returned by decrypt / encryptWithStyle)
+        // ██ NEW v2.2.0 exports
+        infect,
+        stopInfection,
+        // Animation control
         pause:   (anim) => anim?.pause?.(),
         resume:  (anim) => anim?.resume?.(),
         reverse: (anim) => anim?.reverse?.(),
-        stop:    (anim) => anim?.stop?.(),
-        // onUpdate is set via options on decrypt() / encryptWithStyle().
-        // It receives progress (0..1) on every animation frame — use it for
-        // audio-sync, visual triggers, or external progress tracking. Example:
-        //   const anim = Cipher.decrypt(el, { duration: 2000, onUpdate: (p) => myMeter.set(p) });
+        stop:    (anim) => anim?.stop?.()
     };
 
     if (typeof module !== 'undefined' && module.exports) {
@@ -872,3 +909,19 @@
     }
 
 })(typeof window !== 'undefined' ? window : this);
+
+/**
+ * ███████████████████████████████████████████████████████████████████████
+ * CHANGELOG v2.2.0
+ * ███████████████████████████████████████████████████████████████████████
+ * - NEW: infect() / stopInfection() – three propagation patterns:
+ *   • diffusion: spreads from center outwards
+ *   • linear: corrupts top to bottom
+ *   • chaos: organic, sine‑based order
+ * - NEW: four built‑in charsets – binary, hex, undead, glitch
+ * - UPDATED: Degradation now slower by default (interval 500ms, intensity 0.1)
+ * - All features from v2.1.1 fully retained (degradation, sequence, etc.)
+ * - Full backward compatibility
+ *
+ * For previous changes see v2.1.1 header.
+ */

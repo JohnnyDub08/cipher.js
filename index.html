@@ -61,6 +61,15 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; height:16px; 
   font-family:'Fira Code',monospace; font-size:11px; padding:3px 8px; border-radius:2px; cursor:pointer; outline:none; }
 .tc-sel:hover { border-color:rgba(0,255,159,.4); }
 
+/* FIX: Degrade Wall Stabilität */
+#degrade-wall {
+  line-height: 1.6em; /* Verhindert das Springen durch hohe Glitch-Zeichen */
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: var(--g); /* Dynamisch an das Theme gebunden */
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-track { background:var(--void); }
 ::-webkit-scrollbar-thumb { background:rgba(0,255,159,.2); border-radius:2px; }
@@ -73,7 +82,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; height:16px; 
 <body class="p-4 md:p-10 flex flex-col items-center">
 <div class="scanbeam"></div>
 
-<!-- ══ HEADER ════════════════════════════════════════════════════════════════ -->
 <header class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-4 gap-4 border-wu p-6 bg-wu rounded-lg mb-8 hidden-ui flicker" id="ui-header">
   <div class="col-span-1 md:col-span-2">
     <span class="text-[9px] opacity-40 uppercase tracking-widest block">ASCII Evolution Engine</span>
@@ -97,10 +105,8 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; height:16px; 
 
 <main class="w-full max-w-5xl flex flex-col gap-10">
 
-  <!-- ══ TERMINAL ════════════════════════════════════════════════════════════ -->
   <section class="w-full flex flex-col gap-4 hidden-ui" id="ui-terminal">
     <div class="h-[540px] border-wu rounded-lg flex flex-col bg-black/80 overflow-hidden shadow-2xl">
-      <!-- titlebar -->
       <div class="bg-wu px-4 py-2 border-b border-wu flex justify-between items-center text-[10px] tracking-widest uppercase">
         <span class="flex items-center gap-2">
           <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -109,9 +115,8 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; height:16px; 
         <span id="terminal-mode-indicator" class="text-cyan-500">STYLE</span>
         <span class="text-green-800" id="term-clock">--:--:--</span>
       </div>
-      <!-- output -->
       <div id="term-out" class="flex-1 p-6 overflow-y-auto text-[13px] leading-relaxed space-y-3 font-mono scroll-smooth flex flex-col"></div>
-      <!-- input -->
+      
       <div class="p-5 bg-black border-t border-wu">
         <div class="flex items-center mb-3">
           <span class="mr-3 text-green-500 font-bold glow">SYS_INPUT:</span>
@@ -119,13 +124,18 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; height:16px; 
             class="bg-transparent border-none outline-none text-green-300 w-full placeholder:text-green-900 text-base"
             placeholder="ENTER STRING TO ENCRYPT..." autocomplete="off" spellcheck="false">
           <span class="blink text-green-400 ml-2">▋</span>
+          <button onclick="triggerTerminalCipher()" 
+            class="ml-4 text-[10px] px-4 py-1.5 border border-cyan-700 bg-cyan-900/20 text-cyan-400 hover:bg-cyan-500 hover:text-black transition-all rounded-sm font-bold tracking-widest whitespace-nowrap">
+            [ MANUAL RUN ]
+          </button>
         </div>
+        
         <div class="flex gap-2 items-center flex-wrap">
           <span class="text-[9px] text-green-900 uppercase tracking-widest">charset</span>
-          <select id="tc-charset" class="tc-sel">
-            <option value="laughing-man" selected>laughing-man</option>
+          <select id="tc-charset" class="tc-sel" onchange="updateTerminalModeIndicator()">
+            <option value="laughing-man">laughing-man</option>
             <option value="agent-smith">agent-smith</option>
-            <option value="black-ice">black-ice</option>
+            <option value="black-ice" selected>black-ice</option>
             <option value="latin">latin</option>
             <option value="symbols">symbols</option>
             <option value="tech">tech</option>
@@ -147,23 +157,28 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; height:16px; 
           </select>
           <span class="text-[9px] text-green-900 uppercase tracking-widest">style</span>
           <select id="tc-style" class="tc-sel">
-            <option value="wave" selected>wave</option>
             <option value="left-to-right">left-to-right</option>
             <option value="right-to-left">right-to-left</option>
             <option value="waterfall">waterfall</option>
             <option value="vortex">vortex</option>
             <option value="brownian">brownian</option>
+            <option value="wave" selected>wave</option>
             <option value="pingpong">pingpong</option>
           </select>
+          <span class="text-[9px] text-green-900 uppercase tracking-widest">spd</span>
+          <select id="tc-speed" class="tc-sel">
+            <option value="0.4">slow</option>
+            <option value="1" selected>norm</option>
+            <option value="2.5">fast</option>
+          </select>
           <button onclick="termClear()"
-            class="ml-auto text-[9px] px-3 py-1 border border-green-900 text-green-900 hover:border-green-500 hover:text-green-400 transition-all">
+            class="ml-auto text-[9px] px-3 py-1 border border-green-900 text-green-900 hover:border-green-500 hover:text-green-400 transition-all rounded-sm">
             [clear]
           </button>
         </div>
       </div>
     </div>
 
-    <!-- stats row -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="border-wu p-5 bg-wu rounded text-[10px] leading-loose opacity-70 font-mono overflow-hidden h-28">
         <div class="text-green-700 font-bold">KERNEL_RESOURCES: [STABLE]</div>
@@ -181,7 +196,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; height:16px; 
     </div>
   </section>
 
-  <!-- ══ HERO CARDS ══════════════════════════════════════════════════════════ -->
   <section class="w-full flex flex-col gap-4 hidden-ui" id="ui-heroes">
     <div class="border-b border-wu pb-3 flex justify-between items-end">
       <div>
@@ -242,7 +256,40 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; height:16px; 
     </div>
   </section>
 
-  <!-- ══ CHARSET EXPLORER ════════════════════════════════════════════════════ -->
+  <section class="w-full flex flex-col gap-4 hidden-ui mb-12" id="ui-degrade">
+    <div class="border-b border-wu pb-4 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      <div>
+        <h2 class="text-sm font-black tracking-[.4em] uppercase text-red-500 glow-r">Neural Stability Monitor</h2>
+        <div class="flex gap-4 items-center mt-2">
+           <span class="text-[9px] text-red-900 uppercase tracking-widest font-bold">Infection Vector:</span>
+           <select id="degrade-type" class="bg-black border border-red-900/40 text-red-500 text-[10px] uppercase px-2 py-1 outline-none focus:border-red-500 transition-colors cursor-pointer">
+              <option value="diffusion">Center-Out Diffusion</option>
+              <option value="linear">Linear Corruption (Top-Down)</option>
+              <option value="chaos">Chaotic Interfere (Sinus)</option>
+           </select>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <button onclick="injectVirus()" style="color: #ef4444; border-color: #ef4444;" class="text-[10px] px-4 py-2 border bg-red-900/10 hover:bg-red-500 hover:text-white transition-all font-bold tracking-widest uppercase">
+          Inject Virus
+        </button>
+        <button onclick="restoreDegrade()" style="color: #22c55e; border-color: #22c55e;" class="text-[10px] px-4 py-2 border hover:bg-green-500 hover:text-black transition-all tracking-widest uppercase font-bold">
+          Restore Data
+        </button>
+        <button onclick="runDemoSequence()" style="color: #3b82f6; border-color: #3b82f6;" class="text-[10px] px-4 py-2 border hover:bg-blue-500 hover:text-white transition-all tracking-widest uppercase font-bold">
+          Run Demo Seq
+        </button>
+      </div>
+    </div>
+
+    <div class="relative group">
+      <div id="degrade-wall" class="border border-wu p-8 bg-black/60 rounded-lg font-mono text-[11px] min-h-[350px] transition-all group-hover:bg-black/80"></div>
+      <div class="absolute top-4 right-4 text-[9px] font-bold text-red-600 animate-pulse uppercase tracking-[.3em]" id="stability-warn" style="display:none">
+        Critical System Decay Detected
+      </div>
+    </div>
+  </section>
+
   <section class="w-full flex flex-col gap-4 hidden-ui pb-20" id="ui-explorer">
     <div class="border-b border-wu pb-4 flex justify-between items-end">
       <div>
@@ -265,9 +312,14 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; height:16px; 
 
 </main>
 
-<!-- ══ CIPHER.JS ENGINE ══════════════════════════════════════════════════════ -->
+<footer class="border-wu bg-wu rounded px-4 py-2 flex justify-between items-center text-[10px] text-green-900 mt-auto w-full max-w-5xl mx-auto mb-4">
+  <span>cipher.js v2.2.0 · MIT · zero dependencies · ~3kb gzipped</span>
+  <a href="https://github.com/JohnnyDub08/cipher.js" class="hover:text-green-500 transition-colors tracking-widest">github.com/JohnnyDub08/cipher.js →</a>
+</footer>
+
 <script>
 (function(g){'use strict';
+// ── CHARSETS ─────────────────────────────────────────────────────────────
 const CS={
   latin:       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
   symbols:     '!@#$%^&*()-_=+[]{}<>/\\|:;\'"`,.~?',
@@ -287,11 +339,8 @@ const CS={
   egyptian:    '𓀀𓀁𓀂𓀃𓁐𓂀𓂓𓃀𓃗𓃭𓆣𓆤',
   music:       '♩♪♫♬♭♮♯',
   arrows:      '←→↑↓↖↗↘↙⇐⇒⇑⇓⟵⟶⟷',
-  // laughing-man: CP437 symbol/face — zero box-drawing overlap with black-ice
   'laughing-man':'☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨▲▼',
-  // agent-smith: katakana + binary + ASCII punct
   'agent-smith':'0123456789マージャンウーロン茶チャーハンチャーシュシューマイABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~',
-  // black-ice: box drawing + geometric quadrants — zero CP437 face/symbol overlap
   'black-ice': '▒▓█▌▐▀▄┌┐└┘├┤┬┴┼═║╔╗╚╝╠╣╦╩╬◤◥◢◣◿◺◹◸◴◵◶◷◰◱◲◳◬◭◮◪◫◨◩◧◟◞◝◜'
 };
 const WP={
@@ -327,7 +376,7 @@ function trigger(el,opts={}){const{burstSteps=6,burstDelay=60,decryptDuration=15
 const ST={
   'left-to-right':(el,o,m,dir,dur,sp,lp,eu,ec)=>{const len=o.length,c=gcm(m);const a=new Anim(el,{mode:m,direction:dir,duration:dur,speed:sp||1,loop:lp||false,onUpdate:p=>{const n=Math.floor(p*len);let r='';for(let i=0;i<len;i++){if(iws(o[i])){r+=o[i];continue}r+=i<n?rc(c):o[i]}el.innerText=r;if(eu)eu(p)},onComplete:()=>{el.innerText=es(o,c);if(ec)ec()}});a.start();return a},
   'right-to-left':(el,o,m,dir,dur,sp,lp,eu,ec)=>{const len=o.length,c=gcm(m);const a=new Anim(el,{mode:m,direction:dir,duration:dur,speed:sp||1,loop:lp||false,onUpdate:p=>{const n=Math.floor(p*len);let r='';for(let i=0;i<len;i++){if(iws(o[i])){r+=o[i];continue}r+=i>=len-n?rc(c):o[i]}el.innerText=r;if(eu)eu(p)},onComplete:()=>{el.innerText=es(o,c);if(ec)ec()}});a.start();return a},
-  'waterfall':(el,o,m,dir,dur,sp,lp,eu,ec)=>{const len=o.length,c=gcm(m);const a=new Anim(el,{mode:m,direction:dir,duration:dur,speed:sp||1,loop:lp||false,onUpdate:p=>{let r='';for(let i=0;i<len;i++){if(iws(o[i])){r+=o[i];continue}const pos=i/len,t=p*1.2-pos*.5;r+=t>.5?rc(c):o[i]}el.innerText=r;if(eu)eu(p)},onComplete:()=>{el.innerText=es(o,c);if(ec)ec()}});a.start();return a},
+  'waterfall':(el,o,m,dir,dur,sp,lp,eu,ec)=>{const len=o.length,c=gcm(m),isD=dir!=='up';const a=new Anim(el,{mode:m,direction:dir,duration:dur,speed:sp||1,loop:lp||false,onUpdate:p=>{let r='';for(let i=0;i<len;i++){if(iws(o[i])){r+=o[i];continue}const pos=isD?i/len:1-(i/len),t=p*1.2-pos*.5;r+=t>.5?rc(c):o[i]}el.innerText=r;if(eu)eu(p)},onComplete:()=>{el.innerText=es(o,c);if(ec)ec()}});a.start();return a},
   'vortex':(el,o,m,dir,dur,sp,lp,eu,ec)=>{const len=o.length,c=gcm(m),ctr=len/2;const a=new Anim(el,{mode:m,direction:dir,duration:dur,speed:sp||1,loop:lp||false,onUpdate:p=>{const r2=p*(len/2+1);let r='';for(let i=0;i<len;i++){if(iws(o[i])){r+=o[i];continue}r+=Math.abs(i-ctr)<=r2?rc(c):o[i]}el.innerText=r;if(eu)eu(p)},onComplete:()=>{el.innerText=es(o,c);if(ec)ec()}});a.start();return a},
   'brownian':(el,o,m,dir,dur,sp,lp,eu,ec)=>{const len=o.length,c=gcm(m),ord=Array.from({length:len},(_,i)=>i).sort(()=>Math.random()-.5),enc2=new Uint8Array(len);let last=0;const a=new Anim(el,{mode:m,direction:dir,duration:dur,speed:sp||1,loop:lp||false,onUpdate:p=>{const cnt=Math.floor(p*len);for(let i=last;i<cnt;i++)enc2[ord[i]]=1;last=cnt;let r='';for(let i=0;i<len;i++){if(iws(o[i])){r+=o[i];continue}r+=enc2[i]?rc(c):o[i]}el.innerText=r;if(eu)eu(p)},onComplete:()=>{el.innerText=es(o,c);if(ec)ec()}});a.start();return a},
   'wave':(el,o,m,dir,dur,sp,lp,eu,ec)=>{const len=o.length,c=gcm(m);const a=new Anim(el,{mode:m,direction:dir,duration:dur,speed:sp||1,loop:lp||false,onUpdate:p=>{let r='';for(let i=0;i<len;i++){if(iws(o[i])){r+=o[i];continue}const w=Math.sin((i/len)*Math.PI*4-p*Math.PI*6),t=p*2-1+w*.3;r+=t>0?rc(c):o[i]}el.innerText=r;if(eu)eu(p)},onComplete:()=>{el.innerText=es(o,c);if(ec)ec()}});a.start();return a},
@@ -336,48 +385,104 @@ const ST={
 function encryptWithStyle(el,opts={}){const{style='left-to-right',mode='laughing-man',direction='normal',duration=2000,onUpdate=null,onComplete=null,speed=1,loop=false}=opts;const o=el.innerText||el.textContent;el.setAttribute('data-cipher-original',o);el.setAttribute('data-cipher-mode',mode);const sf=ST[style];if(!sf)throw new Error('Unknown style: '+style);return reg(el,sf(el,o,mode,direction,duration,speed,loop,onUpdate,onComplete))}
 function getWallPattern(n){return WP[n]||WP['laughing-man']}
 const di={};
-function startDegradation(el,interval=150,intensity=.15){if(!el._cid)el._cid=Math.random().toString(36).slice(2,9);const id=el._cid;if(di[id])clearInterval(di[id]);di[id]=setInterval(()=>{const cur=el.innerText;let d='';for(let i=0;i<cur.length;i++){if(iws(cur[i])){d+=cur[i];continue}d+=Math.random()<intensity?mc(cur[i],intensity):cur[i]}el.innerText=d},interval)}
-function stopDegradation(el){if(el._cid&&di[el._cid]){clearInterval(di[el._cid]);delete di[el._cid]}}
-g.Cipher={version:'2.1.1',encrypt,decrypt,trigger,encryptWithStyle,styles:Object.keys(ST),modes:['laughing-man','agent-smith','black-ice'],charsets:CS,wallPatterns:WP,getWallPattern,startDegradation,stopDegradation,pause:a=>a?.pause?.(),resume:a=>a?.resume?.(),reverse:a=>a?.reverse?.(),stop:a=>a?.stop?.()};
+
+// --- INFECTION ENGINE ---
+let activeInfections = new Map();
+function infect(el, opt = {}) {
+    const type = opt.type || 'diffusion';
+    const spread = opt.spread || 12;
+    const text = el.getAttribute('data-cipher-original') || el.innerText;
+    const charset = CS[opt.mode || el.getAttribute('data-cipher-mode')] || CS['black-ice'];
+    
+    stopInfection(el);
+
+    const allIndices = Array.from({length: text.length}, (_, i) => i);
+    let sorted = [];
+    if (type === 'diffusion') {
+        const mid = text.length / 2;
+        sorted = allIndices.sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid));
+    } else if (type === 'linear') {
+        sorted = allIndices;
+    } else if (type === 'chaos') {
+        sorted = allIndices.sort((a, b) => (Math.sin(a * 0.1) + Math.cos(a * 0.05)) - (Math.sin(b * 0.1) + Math.cos(b * 0.05)));
+    }
+
+    const state = { active: true, cursor: 0, indices: sorted };
+    activeInfections.set(el, state);
+
+    function step() {
+        if (!state.active) return;
+        let currentContent = el.innerText.split('');
+        for(let n = 0; n < spread; n++) {
+            if (state.cursor < state.indices.length) {
+                const idx = state.indices[state.cursor];
+                // FIX: Leerzeichen und Umbrüche beim Infect komplett in Ruhe lassen!
+                if (currentContent[idx] && currentContent[idx].trim() !== "" && currentContent[idx] !== '\n') {
+                    currentContent[idx] = charset[Math.floor(Math.random() * charset.length)];
+                }
+                state.cursor++;
+            }
+        }
+        for(let i = 0; i < state.cursor; i++) {
+            const idx = state.indices[i];
+            if (Math.random() > 0.96 && currentContent[idx] && currentContent[idx].trim() !== "" && currentContent[idx] !== '\n') {
+                currentContent[idx] = charset[Math.floor(Math.random() * charset.length)];
+            }
+        }
+        el.innerText = currentContent.join('');
+        if (state.cursor < state.indices.length) requestAnimationFrame(step);
+        else if (opt.onComplete) opt.onComplete();
+    }
+    requestAnimationFrame(step);
+}
+function stopInfection(el) {
+    if (activeInfections.has(el)) {
+        activeInfections.get(el).active = false;
+        activeInfections.delete(el);
+    }
+}
+
+g.Cipher={version:'2.2.0',encrypt,decrypt,trigger,encryptWithStyle,styles:Object.keys(ST),modes:Object.keys(CS),charsets:CS,wallPatterns:WP,getWallPattern,infect,stopInfection,pause:a=>a?.pause?.(),resume:a=>a?.resume?.(),reverse:a=>a?.reverse?.(),stop:a=>a?.stop?.()};
 })(window);
 </script>
 
-<!-- ══ APP LOGIC ══════════════════════════════════════════════════════════════ -->
 <script>
-// ── ASCII HERO ART ────────────────────────────────────────────────────────────
-// "CIPHER.JS" in box-drawing segmented style
 const ASCII_HERO = `
-
 Cipher.sequence(el, [\n
   { action: 'encrypt', mode: 'black-ice' },\n
-  { action: 'degrade', interval: 100, intensity: 0.1 },\n
+  { action: 'infect', type: 'chaos', spread: 15 },\n
   { action: 'trigger', burstSteps: 5 },\n
   { action: 'decrypt', duration: 3000 }\n
-], () => console.log('Sequenz fertig'));\n
+], () => console.log('Sequence done'));\n
 
-Mögliche action‑Werte:\n
-'encrypt', 'decrypt', 'trigger', 'cover', 'degrade'\n
-Jede Aktion akzeptiert die jeweiligen Optionen.\n
+Available Methods:\n
+'encrypt', 'decrypt', 'trigger', 'infect', 'encryptWithStyle'\n
+Each action accepts its specific options block.\n
 11. Cipher.parallel(element, animations, onComplete?)\n
+Starts multiple actions concurrently.\n
 
-Startet mehrere Aktionen gleichzeitig und wartet, bis alle fertig sind.\n
-
-Cipher.parallel(el, [\n
-  { action: 'encrypt', mode: 'agent-smith' },\n
-  { action: 'cover', pattern: 'matrix-rain', duration: 2000 }\n
-], () => console.log('Parallel abgeschlossen'));\n
-
-
-! --> https://www.youtube.com/watch?v=t3bKDBtdSw8 <-- !
-
+! --> github.com/JohnnyDub08/cipher.js <-- !
 `;
 
+const DEGRADE_TEXT = `NEURAL_NODE_774: BUFFER_DUMP // DATA_PERSISTENCE: 98.4%
+The fundamental concept of the degrade function is the simulation of bit-rot and data entropy within a live environment. 
+By targeting individual character nodes, we can visualize the breakdown of structured information into chaotic noise.
+
+SYSTEM ARCHITECTURE: 
+1. Character Sampling: Every frame a subset of the text is selected via the chosen sort-algorithm.
+2. Mutation: The selected characters are replaced by noise from the active charset.
+3. Propagation: The decay spreads until the entire string reaches maximum entropy.
+
+[INFO] This process simulates the visual representation of a 'Digital Virus'. 
+WARNING: Running high-intensity degradation on large strings may cause visual disorientation.
+DATA INTEGRITY CHECK: 0.042% - STATUS: CRITICAL_DECAY.`;
+
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let activeTerminalMode = 'black-ice';
-let globalBaseDuration  = 1000; // faster default (matches slider 1400)
+let activeTerminalMode  = 'black-ice';
+let globalBaseDuration  = 1000;
 let isGlobalLooping     = false;
 
-// ── CLOCK ─────────────────────────────────────────────────────────────────────
+// ── CLOCK & UPTIME ────────────────────────────────────────────────────────────
 function tickClock(){
   const n=new Date();
   document.getElementById('term-clock').textContent=
@@ -385,7 +490,6 @@ function tickClock(){
 }
 setInterval(tickClock,1000); tickClock();
 
-// ── UPTIME ────────────────────────────────────────────────────────────────────
 function startUptime(){
   let s=0;setInterval(()=>{
     s++;const h=Math.floor(s/3600).toString().padStart(2,'0');
@@ -395,7 +499,6 @@ function startUptime(){
   },1000);
 }
 
-// ── HEX STREAM ────────────────────────────────────────────────────────────────
 function startHexStream(){
   const el=document.getElementById('hex-stream');
   setInterval(()=>{
@@ -416,12 +519,18 @@ function logToTerminal(text, cls='text-green-700'){
   return d;
 }
 
-// ── TERMINAL ENCRYPT — fast, no cumulative lag ────────────────────────────────
+function triggerTerminalCipher() {
+  const v = termIn.value.trim(); 
+  if(!v) return;
+  termIn.value = ''; 
+  termPrintCipher(v);
+}
+
 function termPrintCipher(val){
   const charset = document.getElementById('tc-charset').value;
   const style   = document.getElementById('tc-style').value;
-  // Fixed fast speed — not dependent on previous animations finishing
-  const dur = Math.max(300, val.length * 18);
+  const dur     = Math.min(1200, Math.max(300, val.length * 8));
+  const speed   = parseFloat(document.getElementById('tc-speed').value) || 1;
 
   logToTerminal(`root@cipher:~$ ${val}`, 'text-white/20');
 
@@ -436,22 +545,17 @@ function termPrintCipher(val){
   target.setAttribute('data-cipher-original', val);
   target.setAttribute('data-cipher-mode', charset);
 
-  // speed=2.5 → always fast regardless of global slider
-  const anim = Cipher.encryptWithStyle(target, {style, mode: charset, duration: dur, speed: 2.5});
+  const anim = Cipher.encryptWithStyle(target, {style: style, mode: charset, duration: dur, speed: speed});
   anim.o.onUpdate = () => { termOut.scrollTop = termOut.scrollHeight; };
   anim.o.onComplete = () => {
-    // quick burst-decrypt after short pause
     setTimeout(() => {
       Cipher.trigger(target, {burstSteps: 4, burstDelay: 35, decryptDuration: Math.max(250, dur * 0.6)});
-    }, 400);
+    }, 200);
   };
 }
 
 termIn.addEventListener('keydown', e => {
-  if(e.key === 'Enter'){
-    const v = termIn.value.trim(); if(!v) return;
-    termIn.value = ''; termPrintCipher(v);
-  }
+  if(e.key === 'Enter') triggerTerminalCipher();
 });
 
 function termClear(){
@@ -459,7 +563,12 @@ function termClear(){
   logToTerminal('[SYS] TERMINAL CLEARED — READY');
 }
 
-// ── HOT-SWAP MODE ─────────────────────────────────────────────────────────────
+function updateTerminalModeIndicator() {
+   const charset = document.getElementById('tc-charset').value;
+   document.getElementById('terminal-mode-indicator').textContent = `AES-X // MODE: ${charset.toUpperCase()}`;
+}
+
+// ── HOT-SWAP ──────────────────────────────────────────────────────────────────
 function hotSwapMode(key){
   activeTerminalMode = key;
   const sel = document.getElementById('tc-charset');
@@ -472,13 +581,12 @@ function hotSwapMode(key){
   logToTerminal(`[SYSTEM] HOT-SWAP TO ${key.toUpperCase()} COMPLETED.`, 'text-cyan-500');
 }
 
-// ── HERO CARDS — 2s pause after each loop ─────────────────────────────────────
+// ── HERO CARDS ────────────────────────────────────────────────────────────────
 function initHeroCards(){
   document.getElementById('wall-lm').textContent = Cipher.getWallPattern('laughing-man');
   document.getElementById('wall-as').textContent = Cipher.getWallPattern('agent-smith');
   document.getElementById('wall-bi').textContent = Cipher.getWallPattern('black-ice');
 
-  // Laughing Man — vortex, 2s pause after loop
   const lmEl=document.getElementById('live-lm'), lmP=document.getElementById('prog-lm');
   lmEl.setAttribute('data-cipher-original','STAND ALONE COMPLEX');
   lmEl.setAttribute('data-cipher-mode','laughing-man');
@@ -490,7 +598,6 @@ function initHeroCards(){
   }
   setTimeout(loopLM, 600);
 
-  // Agent Smith — wave, 2s pause
   const asEl=document.getElementById('live-as'), asP=document.getElementById('prog-as');
   asEl.setAttribute('data-cipher-original','FOLLOW THE WHITE PONY');
   asEl.setAttribute('data-cipher-mode','agent-smith');
@@ -502,7 +609,6 @@ function initHeroCards(){
   }
   setTimeout(loopAS, 1100);
 
-  // Black ICE — waterfall, 2s pause
   const biEl=document.getElementById('live-bi'), biP=document.getElementById('prog-bi');
   biEl.setAttribute('data-cipher-original','ICE BREAK PROTOCOL');
   biEl.setAttribute('data-cipher-mode','black-ice');
@@ -515,7 +621,7 @@ function initHeroCards(){
   setTimeout(loopBI, 1700);
 }
 
-// ── CHARSET GRID — 2s pause, faster default ────────────────────────────────────
+// ── CHARSET EXPLORER ──────────────────────────────────────────────────────────
 const ALL_CHARSETS=[
   'laughing-man','agent-smith','black-ice',
   'latin','symbols','tech','math','greek','cyrillic',
@@ -551,13 +657,13 @@ function initCharsetGrid(){
     target.setAttribute('data-cipher-mode', key);
 
     const style = csStyles[i % csStyles.length];
-    const dur   = 700 + Math.random() * 400; // faster: 700–1100ms
+    const dur   = 700 + Math.random() * 400;
 
     function loopCard(){
       target.innerText = key.toUpperCase();
       target.setAttribute('data-cipher-original', key.toUpperCase());
       const anim = Cipher.encryptWithStyle(target,{
-        style, mode: key, duration: dur, speed: 1.8,   // fast
+        style, mode: key, duration: dur, speed: 1.8,
         onUpdate: p => bar.style.width=(p*100)+'%',
         onComplete: () => { bar.style.width='0%'; setTimeout(loopCard, 2000 + Math.random()*500); }
       });
@@ -566,9 +672,10 @@ function initCharsetGrid(){
     gridInstances.push(null);
     setTimeout(loopCard, 200 + i * 80);
   });
+  
+  document.getElementById('active-mode-display').textContent = activeTerminalMode.toUpperCase();
 }
 
-// ── GLOBAL LOOP ── (same pattern as doc6)
 function globalLoop(active){
   isGlobalLooping = active;
   if(!active){
@@ -593,12 +700,11 @@ function globalLoop(active){
       });
     }));
     await Promise.all(ps);
-    if(isGlobalLooping) setTimeout(syncLoop, 2000); // 2s pause between global sync loops
+    if(isGlobalLooping) setTimeout(syncLoop, 2000);
   }
   syncLoop();
 }
 
-// ── SPEED SLIDER ─────────────────────────────────────────────────────────────
 document.getElementById('global-speed').addEventListener('input', e=>{
   const val = parseInt(e.target.value);
   globalBaseDuration = Math.max(150, 2000 - val);
@@ -606,18 +712,76 @@ document.getElementById('global-speed').addEventListener('input', e=>{
   document.getElementById('speed-val').textContent = `${multiplier}x`;
 });
 
-// ── AUTO INIT — no button, runs on DOMContentLoaded ──────────────────────────
+// ── NEURAL STABILITY MONITOR ──────────────────────────────────────────────────
+function initDegradeSection() {
+    const wall = document.getElementById('degrade-wall');
+    if(!wall) return;
+    wall.innerText = DEGRADE_TEXT;
+    wall.setAttribute('data-cipher-original', DEGRADE_TEXT);
+    wall.setAttribute('data-cipher-mode', 'black-ice');
+}
+
+function injectVirus() {
+    const wall = document.getElementById('degrade-wall');
+    const type = document.getElementById('degrade-type').value;
+    
+    document.getElementById('stability-warn').style.display = 'block';
+    // Ändere Farbe bei Virus Injektion (Rot-Modus)
+    wall.style.color = "#ef4444";
+    wall.style.textShadow = "0 0 15px rgba(239,68,68,0.5)";
+    
+    logToTerminal(`[SYS] VIRUS INJECTED: VECTOR_${type.toUpperCase()}`, "text-red-500 font-bold");
+
+    Cipher.infect(wall, {
+        type: type,
+        spread: 12,
+        onComplete: () => logToTerminal("[CRITICAL] BUFFER OVERFLOW REACHED", "text-red-600 font-bold")
+    });
+}
+
+function restoreDegrade() {
+    const wall = document.getElementById('degrade-wall');
+    const original = wall.getAttribute('data-cipher-original');
+    
+    Cipher.stopInfection(wall);
+    document.getElementById('stability-warn').style.display = 'none';
+    
+    // Setze Farbe zurück auf CSS Variable des aktiven Themes
+    wall.style.color = "var(--g)";
+    wall.style.textShadow = "none";
+    
+    Cipher.decrypt(wall, original, 2500, () => {
+        logToTerminal("[OK] DATA INTEGRITY RESTORED", "text-green-500");
+    });
+}
+
+function runDemoSequence() {
+    logToTerminal("[SYS] INITIATING DEMO SEQUENCE...", "text-blue-500 font-bold");
+    setTimeout(() => {
+        // Nutzt den Type aus dem Dropdown für die Demo
+        injectVirus();
+        setTimeout(() => {
+            logToTerminal("[SYS] KERNEL PANIC. AUTO-RECOVERY ENGAGED.", "text-yellow-500");
+            restoreDegrade();
+        }, 3500);
+    }, 1000);
+}
+
+
+// ── AUTO INIT ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // reveal UI staggered
-  ['ui-header','ui-terminal','ui-heroes','ui-explorer'].forEach((id,i)=>{
+  initDegradeSection();
+
+  ['ui-header','ui-terminal','ui-heroes','ui-degrade','ui-explorer'].forEach((id,i)=>{
     setTimeout(()=>{
       const el = document.getElementById(id);
-      el.classList.remove('hidden-ui');
-      el.classList.add('visible-ui');
+      if(el) {
+          el.classList.remove('hidden-ui');
+          el.classList.add('visible-ui');
+      }
     }, i * 150);
   });
 
-  // ── ASCII HERO in terminal, centered, decrypts on load
   const heroWrap = document.createElement('div');
   heroWrap.style.cssText = 'width:100%;display:flex;justify-content:center;align-items:center;flex:1;padding:8px 0';
   const heroPre = document.createElement('pre');
@@ -628,13 +792,11 @@ document.addEventListener('DOMContentLoaded', () => {
   heroWrap.appendChild(heroPre);
   termOut.appendChild(heroWrap);
 
-  // scramble immediately, then decrypt to reveal
   Cipher.encrypt(heroPre, {mode:'black-ice'});
   setTimeout(()=>{
     Cipher.decrypt(heroPre, ASCII_HERO, 1800, ()=>{
-      // after reveal: small status line
       setTimeout(()=>{
-        logToTerminal('[OK]  cipher.js v2.1.1 · 21 charsets · 7 styles · 3 modes', 'text-green-700 text-xs');
+        logToTerminal('[OK]  cipher.js v2.2.0 · 21 charsets · 7 styles · 3 modes', 'text-green-700 text-xs');
         setTimeout(()=>{
           logToTerminal('[READY] type anything to encrypt ↓', 'text-green-500 text-xs');
           termIn.focus();
@@ -647,6 +809,7 @@ document.addEventListener('DOMContentLoaded', () => {
   startHexStream();
   initHeroCards();
   initCharsetGrid();
+  updateTerminalModeIndicator();
 });
 </script>
 </body>
