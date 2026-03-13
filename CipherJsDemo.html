@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cipher.js</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root { --g: #00ff9f; --c: #00e5ff; --r: #ff003c; --void: #010102; }
+body { background: var(--void); font-family: 'Fira Code', monospace; color: var(--g); min-height: 100vh; overflow-x: hidden; }
+body::after { content: ''; pointer-events: none; position: fixed; inset: 0; z-index: 100;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.1) 2px, rgba(0,0,0,.1) 4px); }
+
+.scanbeam { position: fixed; left: 0; width: 100%; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--g), var(--c), transparent);
+  opacity: .15; animation: beam 8s linear infinite; z-index: 9998; pointer-events: none; }
+@keyframes beam { 0% { top: -4px } 100% { top: 100vh } }
+
+.glow  { text-shadow: 0 0 15px var(--g); }
+.glow-c{ text-shadow: 0 0 15px var(--c); }
+.glow-r{ text-shadow: 0 0 15px var(--r); }
+.border-wu { border: 1px solid rgba(0,255,159,.15); }
+.bg-wu     { background: rgba(0,255,159,.02); }
+
+/* fade-in on load */
+.hidden-ui { opacity: 0; transform: translateY(8px); transition: all .9s ease; }
+.visible-ui{ opacity: 1; transform: translateY(0); }
+
+/* charset cards */
+.char-card { transition: all .3s; background: rgba(5,8,10,.9); cursor: pointer; border: 1px solid rgba(0,255,159,.1); }
+.char-card:hover { border-color: var(--g); transform: scale(1.02); z-index: 10; background: rgba(0,255,159,.05); }
+.active-set { border-color: var(--c) !important; box-shadow: 0 0 20px rgba(0,229,255,.2); }
+.active-set .char-dot { background: var(--c) !important; box-shadow: 0 0 8px var(--c); }
+
+/* hero cards */
+.hero-card { border-radius: 4px; position: relative; overflow: hidden; transition: transform .3s, box-shadow .3s; cursor: pointer; }
+.hero-card:hover { transform: translateY(-3px); }
+.hc-lm { background:#020e05; border:1px solid rgba(0,255,159,.25); box-shadow:0 0 30px rgba(0,255,159,.05); }
+.hc-lm:hover { box-shadow:0 0 50px rgba(0,255,159,.12); }
+.hc-as { background:#0e0203; border:1px solid rgba(255,0,60,.25);  box-shadow:0 0 30px rgba(255,0,60,.05); }
+.hc-as:hover { box-shadow:0 0 50px rgba(255,0,60,.12); }
+.hc-bi { background:#020a0e; border:1px solid rgba(0,229,255,.25); box-shadow:0 0 30px rgba(0,229,255,.05); }
+.hc-bi:hover { box-shadow:0 0 50px rgba(0,229,255,.12); }
+.wall-pat { font-size:10px; line-height:1.5; white-space:pre; padding:10px 12px; border-radius:2px; background:rgba(0,0,0,.5); }
+.wall-lm { color:rgba(0,255,159,.65); border:1px solid rgba(0,255,159,.1); }
+.wall-as { color:rgba(255,0,60,.65);  border:1px solid rgba(255,0,60,.1); }
+.wall-bi { color:rgba(0,229,255,.65); border:1px solid rgba(0,229,255,.1); }
+
+/* ascii hero in terminal */
+#ascii-hero { white-space: pre; font-size: clamp(7px, 1.1vw, 11px); line-height: 1.35;
+  text-align: center; color: var(--g); display: block; width: 100%; }
+
+/* speed slider */
+input[type=range] { -webkit-appearance:none; background:#0a1014; height:4px; border-radius:2px; width:100%; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; height:16px; width:16px;
+  background:var(--g); border-radius:0; cursor:pointer; box-shadow:0 0 10px var(--g); }
+
+/* selects */
+.tc-sel { background:rgba(0,255,159,.03); border:1px solid rgba(0,255,159,.18); color:#00cc78;
+  font-family:'Fira Code',monospace; font-size:11px; padding:3px 8px; border-radius:2px; cursor:pointer; outline:none; }
+.tc-sel:hover { border-color:rgba(0,255,159,.4); }
+
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:var(--void); }
+::-webkit-scrollbar-thumb { background:rgba(0,255,159,.2); border-radius:2px; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.blink { animation:blink 1s step-end infinite; }
+@keyframes flicker { 0%,100%{opacity:1} 92%{opacity:1} 93%{opacity:.06} 94.5%{opacity:1} 96%{opacity:.25} 97%{opacity:1} }
+.flicker { animation:flicker 10s ease-in-out infinite; }
+</style>
+</head>
+<body class="p-4 md:p-10 flex flex-col items-center">
+<div class="scanbeam"></div>
+
+<!-- ══ HEADER ════════════════════════════════════════════════════════════════ -->
+<header class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-4 gap-4 border-wu p-6 bg-wu rounded-lg mb-8 hidden-ui flicker" id="ui-header">
+  <div class="col-span-1 md:col-span-2">
+    <span class="text-[9px] opacity-40 uppercase tracking-widest block">ASCII Evolution Engine</span>
+    <span class="font-['Orbitron'] text-2xl font-black glow tracking-tight">cipher.js</span>
+    <div class="flex gap-2 mt-2 flex-wrap">
+      <span class="text-[9px] border border-green-900 px-2 py-0.5 text-green-800">21 CHARSETS</span>
+      <span class="text-[9px] border border-green-900 px-2 py-0.5 text-green-800">7 STYLES</span>
+      <span class="text-[9px] border border-green-900 px-2 py-0.5 text-green-800">3 MODES</span>
+      <span class="text-[9px] border border-green-900 px-2 py-0.5 text-green-800">~3KB</span>
+    </div>
+  </div>
+  <div class="text-center border-x border-green-900/20 flex flex-col justify-center">
+    <span class="text-[9px] opacity-40 uppercase block">Claude,ChatGPT,Gemini,DeepSeek</span>
+    <span id="active-mode-display" class="font-bold text-cyan-400 uppercase tracking-widest text-lg">ENHANCED DEMO</span>
+  </div>
+  <div class="flex flex-col items-end justify-center">
+    <span class="text-[9px] opacity-40 uppercase block">Uptime</span>
+    <span id="uptime" class="font-bold text-cyan-400 font-mono tracking-widest text-lg">00:00:00</span>
+  </div>
+</header>
+
+<main class="w-full max-w-5xl flex flex-col gap-10">
+
+  <!-- ══ TERMINAL ════════════════════════════════════════════════════════════ -->
+  <section class="w-full flex flex-col gap-4 hidden-ui" id="ui-terminal">
+    <div class="h-[540px] border-wu rounded-lg flex flex-col bg-black/80 overflow-hidden shadow-2xl">
+      <!-- titlebar -->
+      <div class="bg-wu px-4 py-2 border-b border-wu flex justify-between items-center text-[10px] tracking-widest uppercase">
+        <span class="flex items-center gap-2">
+          <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          cipher.js // local node 127.0.0.1
+        </span>
+        <span id="terminal-mode-indicator" class="text-cyan-500">STYLE</span>
+        <span class="text-green-800" id="term-clock">--:--:--</span>
+      </div>
+      <!-- output -->
+      <div id="term-out" class="flex-1 p-6 overflow-y-auto text-[13px] leading-relaxed space-y-3 font-mono scroll-smooth flex flex-col"></div>
+      <!-- input -->
+      <div class="p-5 bg-black border-t border-wu">
+        <div class="flex items-center mb-3">
+          <span class="mr-3 text-green-500 font-bold glow">SYS_INPUT:</span>
+          <input type="text" id="term-in"
+            class="bg-transparent border-none outline-none text-green-300 w-full placeholder:text-green-900 text-base"
+            placeholder="ENTER STRING TO ENCRYPT..." autocomplete="off" spellcheck="false">
+          <span class="blink text-green-400 ml-2">▋</span>
+        </div>
+        <div class="flex gap-2 items-center flex-wrap">
+          <span class="text-[9px] text-green-900 uppercase tracking-widest">charset</span>
+          <select id="tc-charset" class="tc-sel">
+            <option value="laughing-man" selected>laughing-man</option>
+            <option value="agent-smith">agent-smith</option>
+            <option value="black-ice">black-ice</option>
+            <option value="latin">latin</option>
+            <option value="symbols">symbols</option>
+            <option value="tech">tech</option>
+            <option value="math">math</option>
+            <option value="greek">greek</option>
+            <option value="cyrillic">cyrillic</option>
+            <option value="katakana">katakana</option>
+            <option value="arabic">arabic</option>
+            <option value="devanagari">devanagari</option>
+            <option value="emoji">emoji</option>
+            <option value="geometric">geometric</option>
+            <option value="box">box</option>
+            <option value="blocks">blocks</option>
+            <option value="braille">braille</option>
+            <option value="runic">runic</option>
+            <option value="egyptian">egyptian</option>
+            <option value="music">music</option>
+            <option value="arrows">arrows</option>
+          </select>
+          <span class="text-[9px] text-green-900 uppercase tracking-widest">style</span>
+          <select id="tc-style" class="tc-sel">
+            <option value="wave" selected>wave</option>
+            <option value="left-to-right">left-to-right</option>
+            <option value="right-to-left">right-to-left</option>
+            <option value="waterfall">waterfall</option>
+            <option value="vortex">vortex</option>
+            <option value="brownian">brownian</option>
+            <option value="pingpong">pingpong</option>
+          </select>
+          <button onclick="termClear()"
+            class="ml-auto text-[9px] px-3 py-1 border border-green-900 text-green-900 hover:border-green-500 hover:text-green-400 transition-all">
+            [clear]
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- stats row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="border-wu p-5 bg-wu rounded text-[10px] leading-loose opacity-70 font-mono overflow-hidden h-28">
+        <div class="text-green-700 font-bold">KERNEL_RESOURCES: [STABLE]</div>
+        <div id="hex-stream" class="text-green-900">FETCHING ADDR: 0x004F22 ...</div>
+        <div class="text-green-900">TCP_SYNC_SENT: 192.168.1.104 → NODE_00</div>
+        <div class="text-cyan-900 italic mt-1">"Flow is the result of focused encryption."</div>
+      </div>
+      <div class="border-wu p-5 bg-wu rounded flex flex-col justify-center gap-3">
+        <div class="flex justify-between items-center">
+          <span class="text-[10px] uppercase font-bold tracking-widest">Global Freq-Speed</span>
+          <span id="speed-val" class="text-lg font-bold glow">2.0x</span>
+        </div>
+        <input type="range" id="global-speed" min="100" max="1800" value="1400">
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ HERO CARDS ══════════════════════════════════════════════════════════ -->
+  <section class="w-full flex flex-col gap-4 hidden-ui" id="ui-heroes">
+    <div class="border-b border-wu pb-3 flex justify-between items-end">
+      <div>
+        <h2 class="text-sm font-black tracking-[.4em] uppercase glow">Cyberpunk Modes</h2>
+        <p class="text-[9px] opacity-30 uppercase mt-1">Click → Hot-Swap Terminal Charset</p>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+      <div class="hero-card hc-lm p-5 flex flex-col gap-3" onclick="hotSwapMode('laughing-man')" id="hero-lm">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="font-['Orbitron'] text-[9px] text-green-900 tracking-[.2em] mb-1">MODE 01 / CYBERPUNK</div>
+            <h3 class="text-base font-bold glow tracking-wider">LAUGHING MAN</h3>
+            <div class="text-[9px] text-green-900 mt-1">Ghost in the Shell · CP437</div>
+          </div>
+          <div class="text-[9px] border border-green-900 px-2 py-0.5 text-green-800">vortex</div>
+        </div>
+        <div class="wall-pat wall-lm" id="wall-lm"></div>
+        <div class="text-sm font-bold glow tracking-widest" id="live-lm" style="min-height:20px">STAND ALONE COMPLEX</div>
+        <div class="h-0.5 bg-green-900/20 rounded overflow-hidden">
+          <div class="h-full bg-green-500/40 rounded" id="prog-lm" style="width:0%;transition:width .04s linear"></div>
+        </div>
+      </div>
+
+      <div class="hero-card hc-as p-5 flex flex-col gap-3" onclick="hotSwapMode('agent-smith')" id="hero-as">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="font-['Orbitron'] text-[9px] text-red-900/60 tracking-[.2em] mb-1">MODE 02 / CYBERPUNK</div>
+            <h3 class="text-base font-bold glow-r tracking-wider">AGENT SMITH</h3>
+            <div class="text-[9px] text-red-900/50 mt-1">The Matrix · 01 · カタカナ</div>
+          </div>
+          <div class="text-[9px] border border-red-900/40 px-2 py-0.5 text-red-900/60">wave</div>
+        </div>
+        <div class="wall-pat wall-as" id="wall-as"></div>
+        <div class="text-sm font-bold glow-r tracking-widest" id="live-as" style="min-height:20px">FOLLOW THE WHITE PONY</div>
+        <div class="h-0.5 bg-red-900/20 rounded overflow-hidden">
+          <div class="h-full bg-red-500/40 rounded" id="prog-as" style="width:0%;transition:width .04s linear"></div>
+        </div>
+      </div>
+
+      <div class="hero-card hc-bi p-5 flex flex-col gap-3" onclick="hotSwapMode('black-ice')" id="hero-bi">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="font-['Orbitron'] text-[9px] text-cyan-900/60 tracking-[.2em] mb-1">MODE 03 / CYBERPUNK</div>
+            <h3 class="text-base font-bold glow-c tracking-wider">BLACK ICE</h3>
+            <div class="text-[9px] text-cyan-900/50 mt-1">Neuromancer · Box Drawing</div>
+          </div>
+          <div class="text-[9px] border border-cyan-900/40 px-2 py-0.5 text-cyan-900/60">waterfall</div>
+        </div>
+        <div class="wall-pat wall-bi" id="wall-bi"></div>
+        <div class="text-sm font-bold glow-c tracking-widest" id="live-bi" style="min-height:20px">ICE BREAK PROTOCOL</div>
+        <div class="h-0.5 bg-cyan-900/20 rounded overflow-hidden">
+          <div class="h-full bg-cyan-500/40 rounded" id="prog-bi" style="width:0%;transition:width .04s linear"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ CHARSET EXPLORER ════════════════════════════════════════════════════ -->
+  <section class="w-full flex flex-col gap-4 hidden-ui pb-20" id="ui-explorer">
+    <div class="border-b border-wu pb-4 flex justify-between items-end">
+      <div>
+        <h2 class="text-sm font-black tracking-[.4em] uppercase glow">Charset Explorer</h2>
+        <p class="text-[9px] opacity-30 uppercase mt-1">Click → Hot-Swap Terminal Engine</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="globalLoop(true)"
+          class="text-[10px] px-4 py-2 border border-green-500 hover:bg-green-500 hover:text-black transition-all font-bold">
+          START GLOBAL SYNC
+        </button>
+        <button onclick="globalLoop(false)"
+          class="text-[10px] px-4 py-2 border border-red-900 text-red-500 hover:bg-red-500 hover:text-white transition-all">
+          TERMINATE
+        </button>
+      </div>
+    </div>
+    <div id="charset-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+  </section>
+
+</main>
+
+<!-- ══ CIPHER.JS ENGINE ══════════════════════════════════════════════════════ -->
+<script>
+(function(g){'use strict';
+const CS={
+  latin:       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
+  symbols:     '!@#$%^&*()-_=+[]{}<>/\\|:;\'"`,.~?',
+  tech:        '<>[]{}()/\\|=+-_*&^%$#@!~:;→⇒←⇐↑⇑↓⇓↔↕§¶†‡',
+  math:        '∑∏∂∇∞≈≠≤≥±÷×√∫∮∴∵∀∃∅∈∉∩∪⊂⊃⊆⊇⊕⊗⊥∥',
+  greek:       'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρστυφχψω',
+  cyrillic:    'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЫЭЮЯабвгдежзийклмнопрстуфхцчшщыэюя',
+  katakana:    'マージャンウーロン茶チャーハンチャーシュシューマイ',
+  arabic:      'ابتثجحخدذرزسشصضطظعغفقكلمنهوي',
+  devanagari:  'अआइईउऊऋएऐओऔकखगघचछजझटठडढतथदधनपफबभमयरलवशषसह',
+  emoji:       '😀😁😂😎🤖👾👁️⚡🔥💾📡💻🧠🌐🚀🔮',
+  geometric:   '▲△▼▽◆◇■□●○◉◎◌⬟⬢⬡',
+  box:         '┌┐└┘├┤┬┴┼─│═║╔╗╚╝╠╣╦╩╬',
+  blocks:      '█▓▒░▁▂▃▄▅▆▇▉▊▋▌▍▎▏',
+  braille:     '⠁⠃⠇⠧⠿⠂⠆⠒⠲⠄⠤⠔⠴',
+  runic:       'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛋᛏᛒᛖᛗᛚᛜᛞᛟ',
+  egyptian:    '𓀀𓀁𓀂𓀃𓁐𓂀𓂓𓃀𓃗𓃭𓆣𓆤',
+  music:       '♩♪♫♬♭♮♯',
+  arrows:      '←→↑↓↖↗↘↙⇐⇒⇑⇓⟵⟶⟷',
+  // laughing-man: CP437 symbol/face — zero box-drawing overlap with black-ice
+  'laughing-man':'☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨▲▼',
+  // agent-smith: katakana + binary + ASCII punct
+  'agent-smith':'0123456789マージャンウーロン茶チャーハンチャーシュシューマイABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~',
+  // black-ice: box drawing + geometric quadrants — zero CP437 face/symbol overlap
+  'black-ice': '▒▓█▌▐▀▄┌┐└┘├┤┬┴┼═║╔╗╚╝╠╣╦╩╬◤◥◢◣◿◺◹◸◴◵◶◷◰◱◲◳◬◭◮◪◫◨◩◧◟◞◝◜'
+};
+const WP={
+  'laughing-man':'     ▄▄▄▄▄\n   █ ◙   ◙ █\n   █   ◡   █\n    ▀▄▄▄▄▄▀',
+  'agent-smith': '  0 1 0 1 0 1 0\n  1 0 1 0 1 0 1\n  0 1 0 ア 0 1 0\n  1 0 イ 0 ウ 0 1\n  0 1 0 1 0 1 0',
+  'black-ice':   ' █▓▒░▓█▓▒░▓█▓▒\n ▒░▓█▓▒░▓█▓▒░\n ░▓█▓▒░▓█▓▒░▓\n ▓▒░▓█▓▒░▓█▓▒'
+};
+const EZ={linear:t=>t,easeIn:t=>t*t,easeOut:t=>t*(2-t),easeInOut:t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2};
+function rc(c){return c[Math.floor(Math.random()*c.length)]}
+function gcm(m){return CS[m]||CS['laughing-man']}
+function iws(c){return c.charCodeAt(0)<=32}
+const ar=new WeakMap();
+function reg(el,a){const e=ar.get(el);if(e)e.stop();ar.set(el,a);return a}
+const fam={l:['-','=','_','~'],co:['+','|','/','\\',' X'],cu:['(',')',']','[','{','}'],d:['.',':', ';',','],ci:['o','O','0','@'],bl2:['█','▓','▒','░','▄','▀']};
+const cfm=new Map();for(const f of Object.values(fam))for(const c of f)cfm.set(c,f);
+function mc(c,i){if(Math.random()>i)return c;const f=cfm.get(c);if(!f)return c;const idx=f.indexOf(c),s=Math.floor((Math.random()-.5)*3);return f[(idx+s+f.length)%f.length]}
+function es(o,c){let r='';for(let i=0;i<o.length;i++)r+=iws(o[i])?o[i]:rc(c);return r}
+class Anim{
+  constructor(el,opts={}){this.el=el;this.o={mode:'laughing-man',direction:'normal',duration:2000,delay:0,loop:false,speed:1,easing:'linear',onBegin:null,onUpdate:null,onComplete:null,onLoop:null,...opts};this.s={running:false,paused:false,progress:0,loopCount:0,startTime:0,pauseTime:0};this.frame=null;this.timeout=null}
+  start(){if(this.s.running)return;this.s.running=true;if(this.o.delay>0)this.timeout=setTimeout(()=>this._begin(),this.o.delay);else this._begin()}
+  _begin(){if(this.o.onBegin)this.o.onBegin();const n=performance.now();this.s.startTime=n-(this.s.progress*this.o.duration);this._tick(n)}
+  _tick(n){if(!this.s.running||this.s.paused)return;const elapsed=(n-this.s.startTime)*this.o.speed;let rp=Math.min(1,elapsed/this.o.duration);let p=(EZ[this.o.easing]??EZ.linear)(rp);if(this.o.direction==='reverse')p=1-p;else if(this.o.direction==='alternate'){const e=Math.floor(this.s.loopCount)%2===0;p=e?p:1-p}this.s.progress=p;if(this.o.onUpdate)this.o.onUpdate(p);this.update(p);if(rp<1){this.frame=requestAnimationFrame(t=>this._tick(t))}else{if(this.o.loop){this.s.loopCount++;if(this.o.onLoop)this.o.onLoop(this.s.loopCount);if(this.o.loop===true||this.s.loopCount<this.o.loop){const ln=performance.now();this.s.startTime=ln;this._tick(ln);return}}this.complete()}}
+  update(p){}
+  complete(){this.s.running=false;cancelAnimationFrame(this.frame);clearTimeout(this.timeout);if(this.o.onComplete)this.o.onComplete()}
+  pause(){if(!this.s.running||this.s.paused)return;this.s.paused=true;this.s.pauseTime=performance.now();cancelAnimationFrame(this.frame)}
+  resume(){if(!this.s.running||!this.s.paused)return;this.s.paused=false;this.s.startTime+=performance.now()-this.s.pauseTime;this._tick(performance.now())}
+  reverse(){this.o.direction=this.o.direction==='reverse'?'normal':'reverse'}
+  stop(){this.s.running=false;cancelAnimationFrame(this.frame);clearTimeout(this.timeout)}
+}
+function encrypt(el,opts={}){const m=opts.mode||'laughing-man',c=opts.charset||gcm(m),o=el.innerText||el.textContent;el.setAttribute('data-cipher-original',o);el.setAttribute('data-cipher-mode',m);el.setAttribute('aria-hidden','true');el.innerText=es(o,c)}
+function decrypt(el,tgt=null,dur=2000,cb=null){if(tgt!==null&&typeof tgt==='object'){const o=tgt;tgt=o.targetText||null;dur=o.duration||2000;cb=o.onComplete||null}const fs=tgt||el.getAttribute('data-cipher-original')||el.innerText,m=el.getAttribute('data-cipher-mode')||'laughing-man',len=fs.length,c=gcm(m);const a=new Anim(el,{mode:m,duration:dur,onUpdate:p=>{let s='';for(let i=0;i<len;i++){if(iws(fs[i])){s+=fs[i];continue}const cp=Math.max(0,Math.min(1,(p*1.5)-((i/len)*.5)));s+=cp>=1?fs[i]:rc(c)}el.innerText=s},onComplete:()=>{el.innerText=fs;el.removeAttribute('aria-hidden');if(cb)cb()}});reg(el,a);a.start();return a}
+function trigger(el,opts={}){const{burstSteps=6,burstDelay=60,decryptDuration=1500,onComplete:oc=null}=opts,m=el.getAttribute('data-cipher-mode')||'laughing-man',ft=el.getAttribute('data-cipher-original')||el.innerText,c=gcm(m);let bc=0;const bi=setInterval(()=>{const o2=el.getAttribute('data-cipher-original')||ft;let bt='';for(let i=0;i<o2.length;i++)bt+=iws(o2[i])?o2[i]:mc(rc(c),.8);el.innerText=bt;bc++;if(bc>=burstSteps){clearInterval(bi);decrypt(el,ft,decryptDuration,oc)}},burstDelay)}
+const ST={
+  'left-to-right':(el,o,m,dir,dur,sp,lp,eu,ec)=>{const len=o.length,c=gcm(m);const a=new Anim(el,{mode:m,direction:dir,duration:dur,speed:sp||1,loop:lp||false,onUpdate:p=>{const n=Math.floor(p*len);let r='';for(let i=0;i<len;i++){if(iws(o[i])){r+=o[i];continue}r+=i<n?rc(c):o[i]}el.innerText=r;if(eu)eu(p)},onComplete:()=>{el.innerText=es(o,c);if(ec)ec()}});a.start();return a},
+  'right-to-left':(el,o,m,dir,dur,sp,lp,eu,ec)=>{const len=o.length,c=gcm(m);const a=new Anim(el,{mode:m,direction:dir,duration:dur,speed:sp||1,loop:lp||false,onUpdate:p=>{const n=Math.floor(p*len);let r='';for(let i=0;i<len;i++){if(iws(o[i])){r+=o[i];continue}r+=i>=len-n?rc(c):o[i]}el.innerText=r;if(eu)eu(p)},onComplete:()=>{el.innerText=es(o,c);if(ec)ec()}});a.start();return a},
+  'waterfall':(el,o,m,dir,dur,sp,lp,eu,ec)=>{const len=o.length,c=gcm(m);const a=new Anim(el,{mode:m,direction:dir,duration:dur,speed:sp||1,loop:lp||false,onUpdate:p=>{let r='';for(let i=0;i<len;i++){if(iws(o[i])){r+=o[i];continue}const pos=i/len,t=p*1.2-pos*.5;r+=t>.5?rc(c):o[i]}el.innerText=r;if(eu)eu(p)},onComplete:()=>{el.innerText=es(o,c);if(ec)ec()}});a.start();return a},
+  'vortex':(el,o,m,dir,dur,sp,lp,eu,ec)=>{const len=o.length,c=gcm(m),ctr=len/2;const a=new Anim(el,{mode:m,direction:dir,duration:dur,speed:sp||1,loop:lp||false,onUpdate:p=>{const r2=p*(len/2+1);let r='';for(let i=0;i<len;i++){if(iws(o[i])){r+=o[i];continue}r+=Math.abs(i-ctr)<=r2?rc(c):o[i]}el.innerText=r;if(eu)eu(p)},onComplete:()=>{el.innerText=es(o,c);if(ec)ec()}});a.start();return a},
+  'brownian':(el,o,m,dir,dur,sp,lp,eu,ec)=>{const len=o.length,c=gcm(m),ord=Array.from({length:len},(_,i)=>i).sort(()=>Math.random()-.5),enc2=new Uint8Array(len);let last=0;const a=new Anim(el,{mode:m,direction:dir,duration:dur,speed:sp||1,loop:lp||false,onUpdate:p=>{const cnt=Math.floor(p*len);for(let i=last;i<cnt;i++)enc2[ord[i]]=1;last=cnt;let r='';for(let i=0;i<len;i++){if(iws(o[i])){r+=o[i];continue}r+=enc2[i]?rc(c):o[i]}el.innerText=r;if(eu)eu(p)},onComplete:()=>{el.innerText=es(o,c);if(ec)ec()}});a.start();return a},
+  'wave':(el,o,m,dir,dur,sp,lp,eu,ec)=>{const len=o.length,c=gcm(m);const a=new Anim(el,{mode:m,direction:dir,duration:dur,speed:sp||1,loop:lp||false,onUpdate:p=>{let r='';for(let i=0;i<len;i++){if(iws(o[i])){r+=o[i];continue}const w=Math.sin((i/len)*Math.PI*4-p*Math.PI*6),t=p*2-1+w*.3;r+=t>0?rc(c):o[i]}el.innerText=r;if(eu)eu(p)},onComplete:()=>{el.innerText=es(o,c);if(ec)ec()}});a.start();return a},
+  'pingpong':(el,o,m,dir,dur,sp,lp,eu,ec)=>{const len=o.length,c=gcm(m),enc2=new Uint8Array(len),P=3;const a=new Anim(el,{mode:m,direction:dir,duration:dur,speed:sp||1,loop:lp||false,onUpdate:p=>{const tp=p*P,pass=Math.floor(tp),pp=tp-pass,fwd=pass%2===0,cur=Math.floor(pp*len);for(let i=0;i<=cur;i++)enc2[fwd?i:len-1-i]=1;let r='';for(let i=0;i<len;i++){if(iws(o[i])){r+=o[i];continue}r+=enc2[i]?rc(c):o[i]}el.innerText=r;if(eu)eu(p)},onComplete:()=>{el.innerText=es(o,c);if(ec)ec()}});a.start();return a}
+};
+function encryptWithStyle(el,opts={}){const{style='left-to-right',mode='laughing-man',direction='normal',duration=2000,onUpdate=null,onComplete=null,speed=1,loop=false}=opts;const o=el.innerText||el.textContent;el.setAttribute('data-cipher-original',o);el.setAttribute('data-cipher-mode',mode);const sf=ST[style];if(!sf)throw new Error('Unknown style: '+style);return reg(el,sf(el,o,mode,direction,duration,speed,loop,onUpdate,onComplete))}
+function getWallPattern(n){return WP[n]||WP['laughing-man']}
+const di={};
+function startDegradation(el,interval=150,intensity=.15){if(!el._cid)el._cid=Math.random().toString(36).slice(2,9);const id=el._cid;if(di[id])clearInterval(di[id]);di[id]=setInterval(()=>{const cur=el.innerText;let d='';for(let i=0;i<cur.length;i++){if(iws(cur[i])){d+=cur[i];continue}d+=Math.random()<intensity?mc(cur[i],intensity):cur[i]}el.innerText=d},interval)}
+function stopDegradation(el){if(el._cid&&di[el._cid]){clearInterval(di[el._cid]);delete di[el._cid]}}
+g.Cipher={version:'2.1.1',encrypt,decrypt,trigger,encryptWithStyle,styles:Object.keys(ST),modes:['laughing-man','agent-smith','black-ice'],charsets:CS,wallPatterns:WP,getWallPattern,startDegradation,stopDegradation,pause:a=>a?.pause?.(),resume:a=>a?.resume?.(),reverse:a=>a?.reverse?.(),stop:a=>a?.stop?.()};
+})(window);
+</script>
+
+<!-- ══ APP LOGIC ══════════════════════════════════════════════════════════════ -->
+<script>
+// ── ASCII HERO ART ────────────────────────────────────────────────────────────
+// "CIPHER.JS" in box-drawing segmented style
+const ASCII_HERO = `https://www.youtube.com/watch?v=t3bKDBtdSw8`;
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let activeTerminalMode = 'black-ice';
+let globalBaseDuration  = 1000; // faster default (matches slider 1400)
+let isGlobalLooping     = false;
+
+// ── CLOCK ─────────────────────────────────────────────────────────────────────
+function tickClock(){
+  const n=new Date();
+  document.getElementById('term-clock').textContent=
+    [n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+}
+setInterval(tickClock,1000); tickClock();
+
+// ── UPTIME ────────────────────────────────────────────────────────────────────
+function startUptime(){
+  let s=0;setInterval(()=>{
+    s++;const h=Math.floor(s/3600).toString().padStart(2,'0');
+    const m=Math.floor((s%3600)/60).toString().padStart(2,'0');
+    const sec=(s%60).toString().padStart(2,'0');
+    document.getElementById('uptime').textContent=`${h}:${m}:${sec}`;
+  },1000);
+}
+
+// ── HEX STREAM ────────────────────────────────────────────────────────────────
+function startHexStream(){
+  const el=document.getElementById('hex-stream');
+  setInterval(()=>{
+    const addr=Math.random().toString(16).substr(2,6).toUpperCase();
+    const pack=Array.from({length:4},()=>Math.floor(Math.random()*255).toString(16).toUpperCase().padStart(2,'0')).join(' ');
+    el.textContent=`MEM_ACCESS: 0x${addr} >> DATA: ${pack}`;
+  },150);
+}
+
+// ── TERMINAL ──────────────────────────────────────────────────────────────────
+const termOut = document.getElementById('term-out');
+const termIn  = document.getElementById('term-in');
+
+function logToTerminal(text, cls='text-green-700'){
+  const d=document.createElement('div');
+  d.className=cls; d.textContent=text;
+  termOut.appendChild(d); termOut.scrollTop=termOut.scrollHeight;
+  return d;
+}
+
+// ── TERMINAL ENCRYPT — fast, no cumulative lag ────────────────────────────────
+function termPrintCipher(val){
+  const charset = document.getElementById('tc-charset').value;
+  const style   = document.getElementById('tc-style').value;
+  // Fixed fast speed — not dependent on previous animations finishing
+  const dur = Math.max(300, val.length * 18);
+
+  logToTerminal(`root@cipher:~$ ${val}`, 'text-white/20');
+
+  const row = document.createElement('div');
+  row.className = 'text-green-400 text-base';
+  row.innerHTML = '<span class="opacity-30 mr-3">&gt;&gt;</span><span class="enc-target font-bold break-all"></span>';
+  termOut.appendChild(row);
+  termOut.scrollTop = termOut.scrollHeight;
+
+  const target = row.querySelector('.enc-target');
+  target.innerText = val;
+  target.setAttribute('data-cipher-original', val);
+  target.setAttribute('data-cipher-mode', charset);
+
+  // speed=2.5 → always fast regardless of global slider
+  const anim = Cipher.encryptWithStyle(target, {style, mode: charset, duration: dur, speed: 2.5});
+  anim.o.onUpdate = () => { termOut.scrollTop = termOut.scrollHeight; };
+  anim.o.onComplete = () => {
+    // quick burst-decrypt after short pause
+    setTimeout(() => {
+      Cipher.trigger(target, {burstSteps: 4, burstDelay: 35, decryptDuration: Math.max(250, dur * 0.6)});
+    }, 400);
+  };
+}
+
+termIn.addEventListener('keydown', e => {
+  if(e.key === 'Enter'){
+    const v = termIn.value.trim(); if(!v) return;
+    termIn.value = ''; termPrintCipher(v);
+  }
+});
+
+function termClear(){
+  termOut.innerHTML = '';
+  logToTerminal('[SYS] TERMINAL CLEARED — READY');
+}
+
+// ── HOT-SWAP MODE ─────────────────────────────────────────────────────────────
+function hotSwapMode(key){
+  activeTerminalMode = key;
+  const sel = document.getElementById('tc-charset');
+  for(let i=0;i<sel.options.length;i++){if(sel.options[i].value===key){sel.selectedIndex=i;break}}
+  document.getElementById('active-mode-display').textContent = key.toUpperCase();
+  document.getElementById('terminal-mode-indicator').textContent = `AES-X // MODE: ${key.toUpperCase()}`;
+  document.querySelectorAll('.char-card').forEach(c=>c.classList.remove('active-set'));
+  const card = document.getElementById('cs-card-'+key);
+  if(card) card.classList.add('active-set');
+  logToTerminal(`[SYSTEM] HOT-SWAP TO ${key.toUpperCase()} COMPLETED.`, 'text-cyan-500');
+}
+
+// ── HERO CARDS — 2s pause after each loop ─────────────────────────────────────
+function initHeroCards(){
+  document.getElementById('wall-lm').textContent = Cipher.getWallPattern('laughing-man');
+  document.getElementById('wall-as').textContent = Cipher.getWallPattern('agent-smith');
+  document.getElementById('wall-bi').textContent = Cipher.getWallPattern('black-ice');
+
+  // Laughing Man — vortex, 2s pause after loop
+  const lmEl=document.getElementById('live-lm'), lmP=document.getElementById('prog-lm');
+  lmEl.setAttribute('data-cipher-original','STAND ALONE COMPLEX');
+  lmEl.setAttribute('data-cipher-mode','laughing-man');
+  function loopLM(){
+    lmEl.innerText='STAND ALONE COMPLEX';
+    Cipher.encryptWithStyle(lmEl,{style:'vortex',mode:'laughing-man',duration:2000,
+      onUpdate:p=>lmP.style.width=(p*100)+'%',
+      onComplete:()=>{lmP.style.width='0%'; setTimeout(loopLM, 2000)}});
+  }
+  setTimeout(loopLM, 600);
+
+  // Agent Smith — wave, 2s pause
+  const asEl=document.getElementById('live-as'), asP=document.getElementById('prog-as');
+  asEl.setAttribute('data-cipher-original','FOLLOW THE WHITE PONY');
+  asEl.setAttribute('data-cipher-mode','agent-smith');
+  function loopAS(){
+    asEl.innerText='FOLLOW THE WHITE PONY';
+    Cipher.encryptWithStyle(asEl,{style:'wave',mode:'agent-smith',duration:2400,
+      onUpdate:p=>asP.style.width=(p*100)+'%',
+      onComplete:()=>{asP.style.width='0%'; setTimeout(loopAS, 2000)}});
+  }
+  setTimeout(loopAS, 1100);
+
+  // Black ICE — waterfall, 2s pause
+  const biEl=document.getElementById('live-bi'), biP=document.getElementById('prog-bi');
+  biEl.setAttribute('data-cipher-original','ICE BREAK PROTOCOL');
+  biEl.setAttribute('data-cipher-mode','black-ice');
+  function loopBI(){
+    biEl.innerText='ICE BREAK PROTOCOL';
+    Cipher.encryptWithStyle(biEl,{style:'waterfall',mode:'black-ice',duration:1800,
+      onUpdate:p=>biP.style.width=(p*100)+'%',
+      onComplete:()=>{biP.style.width='0%'; setTimeout(loopBI, 2000)}});
+  }
+  setTimeout(loopBI, 1700);
+}
+
+// ── CHARSET GRID — 2s pause, faster default ────────────────────────────────────
+const ALL_CHARSETS=[
+  'laughing-man','agent-smith','black-ice',
+  'latin','symbols','tech','math','greek','cyrillic',
+  'katakana','arabic','devanagari','emoji','geometric',
+  'box','blocks','braille','runic','egyptian','music','arrows'
+];
+const csStyles=['left-to-right','right-to-left','waterfall','vortex','brownian','wave','pingpong'];
+const gridInstances=[];
+
+function initCharsetGrid(){
+  const grid = document.getElementById('charset-grid');
+  ALL_CHARSETS.forEach((key,i)=>{
+    const card = document.createElement('div');
+    card.id = 'cs-card-'+key;
+    card.className = 'char-card border-wu p-4 rounded flex flex-col justify-between h-24';
+    if(key===activeTerminalMode) card.classList.add('active-set');
+    card.innerHTML=`
+      <div class="flex justify-between items-start">
+        <span class="text-[8px] uppercase tracking-tighter opacity-40">Mod_${String(i+1).padStart(2,'0')} // ${key}</span>
+        <div class="char-dot w-1.5 h-1.5 bg-green-500/20 rounded-full transition-all"></div>
+      </div>
+      <span class="text-sm font-bold char-target tracking-widest">${key.toUpperCase()}</span>
+      <div class="h-0.5 bg-white/5 rounded-full overflow-hidden">
+        <div class="h-full bg-cyan-500/40 w-0 prog-bar" style="transition:width .04s linear"></div>
+      </div>`;
+    card.onclick = () => hotSwapMode(key);
+    grid.appendChild(card);
+
+    const target = card.querySelector('.char-target');
+    const bar    = card.querySelector('.prog-bar');
+    target.innerText = key.toUpperCase();
+    target.setAttribute('data-cipher-original', key.toUpperCase());
+    target.setAttribute('data-cipher-mode', key);
+
+    const style = csStyles[i % csStyles.length];
+    const dur   = 700 + Math.random() * 400; // faster: 700–1100ms
+
+    function loopCard(){
+      target.innerText = key.toUpperCase();
+      target.setAttribute('data-cipher-original', key.toUpperCase());
+      const anim = Cipher.encryptWithStyle(target,{
+        style, mode: key, duration: dur, speed: 1.8,   // fast
+        onUpdate: p => bar.style.width=(p*100)+'%',
+        onComplete: () => { bar.style.width='0%'; setTimeout(loopCard, 2000 + Math.random()*500); }
+      });
+      gridInstances[i] = anim;
+    }
+    gridInstances.push(null);
+    setTimeout(loopCard, 200 + i * 80);
+  });
+}
+
+// ── GLOBAL LOOP ── (same pattern as doc6)
+function globalLoop(active){
+  isGlobalLooping = active;
+  if(!active){
+    gridInstances.forEach(a=>{if(a)Cipher.stop(a)});
+    document.querySelectorAll('.char-target').forEach(t=>{
+      t.innerText = t.getAttribute('data-cipher-original') || t.innerText;
+    });
+    document.querySelectorAll('.prog-bar').forEach(b=>b.style.width='0%');
+    return;
+  }
+  const targets=[...document.querySelectorAll('#charset-grid .char-target')];
+  async function syncLoop(){
+    if(!isGlobalLooping) return;
+    const ps = targets.map((t,i)=>new Promise(res=>{
+      const key   = ALL_CHARSETS[i]||'latin';
+      const style = csStyles[i%csStyles.length];
+      const bar   = t.closest('.char-card')?.querySelector('.prog-bar');
+      t.innerText = t.getAttribute('data-cipher-original')||key.toUpperCase();
+      Cipher.encryptWithStyle(t,{style, mode:key, duration:globalBaseDuration, speed:1.8,
+        onUpdate: p=>{ if(bar) bar.style.width=(p*100)+'%' },
+        onComplete: ()=>{ if(bar) bar.style.width='0%'; res(); }
+      });
+    }));
+    await Promise.all(ps);
+    if(isGlobalLooping) setTimeout(syncLoop, 2000); // 2s pause between global sync loops
+  }
+  syncLoop();
+}
+
+// ── SPEED SLIDER ─────────────────────────────────────────────────────────────
+document.getElementById('global-speed').addEventListener('input', e=>{
+  const val = parseInt(e.target.value);
+  globalBaseDuration = Math.max(150, 2000 - val);
+  const multiplier = (val / 900).toFixed(1);
+  document.getElementById('speed-val').textContent = `${multiplier}x`;
+});
+
+// ── AUTO INIT — no button, runs on DOMContentLoaded ──────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // reveal UI staggered
+  ['ui-header','ui-terminal','ui-heroes','ui-explorer'].forEach((id,i)=>{
+    setTimeout(()=>{
+      const el = document.getElementById(id);
+      el.classList.remove('hidden-ui');
+      el.classList.add('visible-ui');
+    }, i * 150);
+  });
+
+  // ── ASCII HERO in terminal, centered, decrypts on load
+  const heroWrap = document.createElement('div');
+  heroWrap.style.cssText = 'width:100%;display:flex;justify-content:center;align-items:center;flex:1;padding:8px 0';
+  const heroPre = document.createElement('pre');
+  heroPre.id = 'ascii-hero';
+  heroPre.textContent = ASCII_HERO;
+  heroPre.setAttribute('data-cipher-original', ASCII_HERO);
+  heroPre.setAttribute('data-cipher-mode', 'black-ice');
+  heroWrap.appendChild(heroPre);
+  termOut.appendChild(heroWrap);
+
+  // scramble immediately, then decrypt to reveal
+  Cipher.encrypt(heroPre, {mode:'black-ice'});
+  setTimeout(()=>{
+    Cipher.decrypt(heroPre, ASCII_HERO, 1800, ()=>{
+      // after reveal: small status line
+      setTimeout(()=>{
+        logToTerminal('[OK]  cipher.js v2.1.1 · 21 charsets · 7 styles · 3 modes', 'text-green-700 text-xs');
+        setTimeout(()=>{
+          logToTerminal('[READY] type anything to encrypt ↓', 'text-green-500 text-xs');
+          termIn.focus();
+        }, 300);
+      }, 300);
+    });
+  }, 400);
+
+  startUptime();
+  startHexStream();
+  initHeroCards();
+  initCharsetGrid();
+});
+</script>
+</body>
+</html>
