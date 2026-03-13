@@ -1,23 +1,11 @@
 /**
- * cipher.js v2.2.0 — Neural Entropy Edition
- * Lightweight ASCII Evolution Engine
+ * cipher.js
+ * Lightweight ASCII Engine
  * Zero dependencies · ~3.2kb gzipped
  *
  * MIT License
  * Copyright (c) 2026
  *
- * ██ NEW IN v2.2.0 ███████████████████████████████████████████████████████
- * - INFECTION VECTORS: three new propagation patterns
- *   • diffusion  → spreads from center outward
- *   • linear     → top‑down corruption
- *   • chaos      → sinusoidal, seemingly random order
- * - Four new charsets: binary, hex, undead, glitch
- * - Full backward compatibility with v2.1.1
- *
- * UPDATED 2026-03-13: Degradation now slower by default (interval 500ms, intensity 0.1)
- * for a more gradual, creeping effect.
- *
- * Full changelog at the end of this file.
  */
 
 (function(global) {
@@ -909,19 +897,3 @@
     }
 
 })(typeof window !== 'undefined' ? window : this);
-
-/**
- * ███████████████████████████████████████████████████████████████████████
- * CHANGELOG v2.2.0
- * ███████████████████████████████████████████████████████████████████████
- * - NEW: infect() / stopInfection() – three propagation patterns:
- *   • diffusion: spreads from center outwards
- *   • linear: corrupts top to bottom
- *   • chaos: organic, sine‑based order
- * - NEW: four built‑in charsets – binary, hex, undead, glitch
- * - UPDATED: Degradation now slower by default (interval 500ms, intensity 0.1)
- * - All features from v2.1.1 fully retained (degradation, sequence, etc.)
- * - Full backward compatibility
- *
- * For previous changes see v2.1.1 header.
- */
