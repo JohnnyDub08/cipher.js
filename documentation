@@ -1,0 +1,288 @@
+cipher.js – Anleitung
+
+cipher.js ist eine winzige (2,8 KB gzipped) JavaScript-Bibliothek, die Text in lebendige ASCII‑Effekte verwandelt.
+Sie bietet drei Cyberpunk‑Modi, 18 Zeichensätze, 7 Animationsstile und viele Steuerungsmöglichkeiten – ganz ohne Abhängigkeiten.
+📦 Installation / Einbindung
+Via <script> (global)
+
+Lade die Datei cipher.js herunter und binde sie in deine HTML‑Datei ein:
+html
+
+<script src="pfad/zu/cipher.js"></script>
+
+Danach steht das globale Objekt Cipher zur Verfügung.
+Als Modul (ESM)
+javascript
+
+import Cipher from './cipher.js';
+
+Via CDN (falls gehostet)
+html
+
+<script src="https://example.com/cipher.min.js"></script>
+
+🧠 Grundlagen
+
+Alle Funktionen arbeiten auf einem DOM‑Element (meist ein div oder span).
+Die Bibliothek speichert den ursprünglichen Text im Attribut data-cipher-original und den aktuellen Modus in data-cipher-mode.
+Bei der Verschlüsselung wird automatisch aria-hidden="true" gesetzt, damit Screenreader den verstümmelten Text ignorieren – beim Entschlüsseln wird das Attribut wieder entfernt.
+📚 API‑Referenz mit Beispielen
+1. Cipher.encrypt(element, options?)
+
+Verschlüsselt den Text des Elements sofort (ohne Animation).
+html
+
+<div id="target">Hello World</div>
+<button onclick="encryptNow()">Encrypt</button>
+
+javascript
+
+function encryptNow() {
+  const el = document.getElementById('target');
+  Cipher.encrypt(el, { mode: 'agent-smith' });
+}
+
+    options.mode – einer der drei Modi: 'laughing-man' (Default), 'agent-smith', 'black-ice'
+
+    options.charset – eigener Zeichensatz (String) – optional
+
+2. Cipher.decrypt(element, targetText?, duration?, onComplete?)
+
+oder mit Options‑Objekt:
+javascript
+
+Cipher.decrypt(element, {
+  targetText: 'Mein Klartext',
+  duration: 3000,
+  onComplete: () => console.log('Fertig')
+});
+
+Zeigt den Text mit einer animierten Enthüllung an.
+javascript
+
+const el = document.getElementById('target');
+Cipher.decrypt(el, 'Hello World', 2000, () => alert('Entschlüsselt!'));
+
+    targetText – falls nicht angegeben, wird der ursprüngliche Text aus data-cipher-original verwendet.
+
+    duration – Dauer in ms (Default: 2000)
+
+    onComplete – Callback am Ende
+
+3. Cipher.trigger(element, options?)
+
+Erzeugt einen kurzen Glitch‑Burst, gefolgt von der Entschlüsselung.
+javascript
+
+Cipher.trigger(el, {
+  burstSteps: 8,          // Anzahl der Glitch-Frames (Default 6)
+  burstDelay: 60,         // ms zwischen den Frames (Default 80)
+  decryptDuration: 2500,
+  onComplete: myCallback
+});
+
+4. Cipher.reset(element)
+
+Setzt den Text sofort wieder auf den verschlüsselten Zustand zurück (ohne Animation).
+javascript
+
+Cipher.reset(el);
+
+5. Cipher.encryptWithStyle(element, options)
+
+Verschlüsselt mit einem der 7 Animationsstile.
+javascript
+
+Cipher.encryptWithStyle(el, {
+  style: 'wave',
+  mode: 'laughing-man',
+  direction: 'normal',    // 'normal', 'reverse', 'alternate'
+  duration: 3000,
+  onComplete: () => console.log('Fertig')
+});
+
+Verfügbare Stile:
+left-to-right, right-to-left, waterfall, vortex, brownian, wave, pingpong
+
+Jeder Stil hat eine eigene visuelle Charakteristik – probiere sie einfach aus!
+6. Modus und Muster
+Cipher.setMode(modeName, displayEl, wallEl?)
+
+Setzt den Modus für ein Anzeigeelement und optional ein Wandmuster‑Element.
+javascript
+
+Cipher.setMode('black-ice', myDisplayDiv, myWallDiv);
+
+Cipher.getWallPattern(modeName)
+
+Gibt das ASCII‑Muster für den angegebenen Modus als String zurück.
+javascript
+
+const pattern = Cipher.getWallPattern('agent-smith');
+console.log(pattern);
+
+7. Mit Wandmustern abdecken / enthüllen
+Cipher.coverWithPattern(element, options)
+
+Legt ein Overlay mit einem ASCII‑Muster über das Element und blendet es nach einer bestimmten Zeit aus.
+javascript
+
+Cipher.coverWithPattern(el, {
+  pattern: 'matrix-rain',   // Name des Musters
+  duration: 1500,
+  onReveal: (el) => console.log('Wieder sichtbar')
+});
+
+Cipher.revealWithPattern(element, options)
+
+Alias für coverWithPattern (identisch).
+8. Zeichensätze verwalten
+
+cipher.js bringt 18 eingebaute Zeichensätze mit (siehe unten).
+Du kannst eigene hinzufügen oder per URL laden.
+Cipher.loadCharset(url)
+
+Lädt einen Zeichensatz von einer URL (Textdatei) – gibt ein Promise zurück.
+javascript
+
+Cipher.loadCharset('mein_charset.txt').then(charset => {
+  Cipher.addCharset('mein-satz', charset);
+});
+
+Cipher.addCharset(name, charsetString)
+
+Fügt einen benutzerdefinierten Zeichensatz hinzu.
+javascript
+
+Cipher.addCharset('meins', 'abc123!@#');
+
+Cipher.useCharset(element, charsetName)
+
+Wendet einen (eingebauten oder benutzerdefinierten) Zeichensatz auf ein bereits verschlüsseltes Element an.
+javascript
+
+Cipher.useCharset(el, 'katakana');
+
+Eingebaute Charsets:
+latin, symbols, tech, math, greek, cyrillic, katakana, arabic, devanagari, emoji, geometric, box, blocks, braille, runic, egyptian, music, arrows
+sowie die drei Modus‑spezifischen laughing-man, agent-smith, black-ice.
+9. Degradation – langsamer Zerfall
+
+Lässt den Text über die Zeit in benachbarte Zeichen derselben Familie mutieren (Linien → Ecken → Kurven → …).
+Cipher.startDegradation(element, interval = 150, intensity = 0.15)
+
+Startet einen Intervall, der den Text kontinuierlich verändert.
+javascript
+
+Cipher.startDegradation(el, 200, 0.2);
+
+Cipher.stopDegradation(element)
+
+Stoppt die Degradation für dieses Element.
+javascript
+
+Cipher.stopDegradation(el);
+
+Hinweis: Die Bibliothek nutzt ein FinalizationRegistry, um Intervalle bei Garbage Collection automatisch zu stoppen – trotzdem solltest du stopDegradation beim Entfernen des Elements manuell aufrufen.
+10. Cipher.sequence(element, steps, onComplete?)
+
+Führt mehrere Aktionen nacheinander aus.
+javascript
+
+Cipher.sequence(el, [
+  { action: 'encrypt', mode: 'black-ice' },
+  { action: 'degrade', interval: 100, intensity: 0.1 },
+  { action: 'trigger', burstSteps: 5 },
+  { action: 'decrypt', duration: 3000 }
+], () => console.log('Sequenz fertig'));
+
+Mögliche action‑Werte:
+'encrypt', 'decrypt', 'trigger', 'cover', 'degrade'
+Jede Aktion akzeptiert die jeweiligen Optionen.
+11. Cipher.parallel(element, animations, onComplete?)
+
+Startet mehrere Aktionen gleichzeitig und wartet, bis alle fertig sind.
+javascript
+
+Cipher.parallel(el, [
+  { action: 'encrypt', mode: 'agent-smith' },
+  { action: 'cover', pattern: 'matrix-rain', duration: 2000 }
+], () => console.log('Parallel abgeschlossen'));
+
+12. Animationssteuerung
+
+Die Funktionen decrypt, encryptWithStyle, sequence etc. geben ein Animation‑Objekt zurück.
+Damit kannst du die laufende Animation steuern:
+javascript
+
+const anim = Cipher.decrypt(el, { duration: 5000 });
+
+// später
+Cipher.pause(anim);
+Cipher.resume(anim);
+Cipher.reverse(anim);
+Cipher.stop(anim);
+
+Alternativ direkt über das Objekt: anim.pause(), anim.resume() usw.
+⚙️ Optionen & Callbacks im Überblick
+Option	Verwendung
+mode	'laughing-man', 'agent-smith', 'black-ice' (oder eigener Charset)
+charset	eigener Zeichensatz als String (optional)
+style	Animationsstil (left-to-right, wave, …)
+direction	'normal', 'reverse', 'alternate'
+duration	Dauer in ms (Default 2000)
+delay	Verzögerung vor Start (ms)
+loop	true (unendlich) oder Zahl (Anzahl Wiederholungen)
+speed	Geschwindigkeitsfaktor (1.0 = normal)
+easing	'linear', 'easeIn', 'easeOut', 'easeInOut'
+onBegin	Callback zu Beginn
+onUpdate	Wird jeden Frame mit progress (0..1) aufgerufen
+onComplete	Callback am Ende
+onLoop	Wird bei jedem Loop‑Durchlauf aufgerufen (übergibt loopCount)
+♿ Barrierefreiheit
+
+cipher.js setzt während der Verschlüsselung aria-hidden="true" auf das Element und entfernt es bei der Entschlüsselung wieder.
+So werden Screenreader nicht mit unleserlichem Text belastet.
+🧪 Vollständiges Beispiel
+html
+
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    #output {
+      font-family: 'Courier New', monospace;
+      font-size: 2rem;
+      background: #111;
+      color: #0f0;
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="output">cipher.js rockt!</div>
+  <button id="start">Start</button>
+
+  <script src="cipher.js"></script>
+  <script>
+    const el = document.getElementById('output');
+    document.getElementById('start').addEventListener('click', () => {
+      // Erst verschlüsseln (ohne Animation)
+      Cipher.encrypt(el, { mode: 'agent-smith' });
+
+      // Nach 1 Sekunde mit Wave-Stil entschlüsseln
+      setTimeout(() => {
+        Cipher.encryptWithStyle(el, {
+          style: 'wave',
+          duration: 4000,
+          onUpdate: (p) => console.log('Fortschritt:', p)
+        });
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
+
+📖 Lizenz
+
+MIT © 2026 – Frei für private und kommerzielle Nutzung.
