@@ -22,27 +22,3 @@ Transform text into living ASCII art – degrade, encrypt, animate.
     🔁 Sequence & Parallel – chain or run multiple animations together
 
     ⏸️ Pause / Resume / Reverse – full control over running animations
-
-🎨 Built‑in Charsets
-
-latin	        A‑Z a‑z 0‑9
-symbols	        !@#$%^&*()...
-tech	        →⇒←⇐↑⇑↓⇓↔↕§¶†‡
-math	        ∑∏∂∇∞≈≠≤≥±÷×√…
-greek	        ΑΒΓΔ…αβγδ…
-cyrillic	    АБВГ…абвг…
-katakana	    アイウエオ…
-arabic        	ابتث…
-devanagari	    अआइ…
-emoji	        😀😁😂😎🤖👾…
-geometric	    ▲△▼▽◆◇■□●○…
-box	            ┌┐└┘├┤┬┴┼─│═║…
-blocks	        █▓▒░▁▂▃▄▅▆▇…
-braille        	⠁⠃⠇⠧⠿…
-runic	        ᚠᚢᚦᚨᚱ…
-egyptian    	𓀀𓀁𓀂𓀃…
-music	        ♩♪♫♬♭♮♯…
-arrows	        ←→↑↓↖↗↘↙…
-laughing-man	☺☻♥♦♣♠•◘○◙…
-agent-smith	    01アイウエオ… + ASCII
-black-ice	    ▒▓█▌▐▀▄┌┐└┘…
