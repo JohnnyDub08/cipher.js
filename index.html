@@ -346,7 +346,32 @@ g.Cipher={version:'2.1.1',encrypt,decrypt,trigger,encryptWithStyle,styles:Object
 <script>
 // ── ASCII HERO ART ────────────────────────────────────────────────────────────
 // "CIPHER.JS" in box-drawing segmented style
-const ASCII_HERO = `https://www.youtube.com/watch?v=t3bKDBtdSw8`;
+const ASCII_HERO = `
+
+Cipher.sequence(el, [
+  { action: 'encrypt', mode: 'black-ice' },
+  { action: 'degrade', interval: 100, intensity: 0.1 },
+  { action: 'trigger', burstSteps: 5 },
+  { action: 'decrypt', duration: 3000 }
+], () => console.log('Sequenz fertig'));
+
+Mögliche action‑Werte:
+'encrypt', 'decrypt', 'trigger', 'cover', 'degrade'
+Jede Aktion akzeptiert die jeweiligen Optionen.
+11. Cipher.parallel(element, animations, onComplete?)
+
+Startet mehrere Aktionen gleichzeitig und wartet, bis alle fertig sind.
+javascript
+
+Cipher.parallel(el, [
+  { action: 'encrypt', mode: 'agent-smith' },
+  { action: 'cover', pattern: 'matrix-rain', duration: 2000 }
+], () => console.log('Parallel abgeschlossen'));
+
+
+https://www.youtube.com/watch?v=t3bKDBtdSw8
+
+`;
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let activeTerminalMode = 'black-ice';
