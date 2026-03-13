@@ -348,28 +348,27 @@ g.Cipher={version:'2.1.1',encrypt,decrypt,trigger,encryptWithStyle,styles:Object
 // "CIPHER.JS" in box-drawing segmented style
 const ASCII_HERO = `
 
-Cipher.sequence(el, [
-  { action: 'encrypt', mode: 'black-ice' },
-  { action: 'degrade', interval: 100, intensity: 0.1 },
-  { action: 'trigger', burstSteps: 5 },
-  { action: 'decrypt', duration: 3000 }
-], () => console.log('Sequenz fertig'));
+Cipher.sequence(el, [\n
+  { action: 'encrypt', mode: 'black-ice' },\n
+  { action: 'degrade', interval: 100, intensity: 0.1 },\n
+  { action: 'trigger', burstSteps: 5 },\n
+  { action: 'decrypt', duration: 3000 }\n
+], () => console.log('Sequenz fertig'));\n
 
-Mögliche action‑Werte:
-'encrypt', 'decrypt', 'trigger', 'cover', 'degrade'
-Jede Aktion akzeptiert die jeweiligen Optionen.
-11. Cipher.parallel(element, animations, onComplete?)
+Mögliche action‑Werte:\n
+'encrypt', 'decrypt', 'trigger', 'cover', 'degrade'\n
+Jede Aktion akzeptiert die jeweiligen Optionen.\n
+11. Cipher.parallel(element, animations, onComplete?)\n
 
-Startet mehrere Aktionen gleichzeitig und wartet, bis alle fertig sind.
-javascript
+Startet mehrere Aktionen gleichzeitig und wartet, bis alle fertig sind.\n
 
-Cipher.parallel(el, [
-  { action: 'encrypt', mode: 'agent-smith' },
-  { action: 'cover', pattern: 'matrix-rain', duration: 2000 }
-], () => console.log('Parallel abgeschlossen'));
+Cipher.parallel(el, [\n
+  { action: 'encrypt', mode: 'agent-smith' },\n
+  { action: 'cover', pattern: 'matrix-rain', duration: 2000 }\n
+], () => console.log('Parallel abgeschlossen'));\n
 
 
-https://www.youtube.com/watch?v=t3bKDBtdSw8
+! --> https://www.youtube.com/watch?v=t3bKDBtdSw8 <-- !
 
 `;
 
