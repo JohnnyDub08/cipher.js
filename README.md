@@ -1,6 +1,7 @@
 shitty ai demo here: https://johnnydub08.github.io/cipher.js/
 
 Just check it for yourself..it's written quite robust and behaves similar to anime.js
+
 Can be a nice little special effect for encryption or matrix themed webdesigns for you or your customers. :)
 
 cipher.js
