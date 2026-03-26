@@ -1,6 +1,6 @@
 shitty ai demo here: https://johnnydub08.github.io/cipher.js/
 
-Just check it for yourself..it's written quite robust and behaves quite similar to anime.js in some regards.
+Just check it for yourself..it's written quite robust and behaves similar to anime.js in some regards.
 Can be a nice little special effect for encryption or matrix themed webdesigns for you or your customers. :)
 
 🔐 cipher.js
@@ -29,62 +29,54 @@ Transform text into living ASCII art – degrade, encrypt, animate.
     ⏸️ Pause / Resume / Reverse – full control over running animations
 
 
-Eine leichtgewichtige JavaScript-Library (~3.2kb gzipped) zur Simulation von digitalem Zerfall, ASCII-Animationen und Cyberpunk-Verschlüsselungseffekten. 
-Entwickelt für Websites, die eine Atmosphäre von "Hacking" oder "Neural Terminal" erzeugen möchten.
+JavaScript-Library (~3.2kb gzipped) zur Simulation von digitalem Zerfall, ASCII-Animationen und Cyberpunk-Verschlüsselungseffekten. 
 
-🚀 Kern-Features
+Kern-Features
 
-21+ Kuratierte Charsets: Von klassischen Matrix-Katakana über Braille bis hin zu "Black ICE" (Box Drawing).
+21+ Charsets: Von klassischen Matrix-Katakana über Braille bis hin zu Box Drawing.
 
 7 Animations-Styles: Waterfall, Vortex, Brownian Motion, Wave, Ping-Pong etc.
 
 Neural Infection Engine: Drei mathematische Ausbreitungsmodelle (Diffusion, Linear, Chaos), um Texte organisch zu "zerstören".
 
-Zero Dependencies: Reines Vanilla JS.
+Zero Dependencies.
 
-🛠 Integration
+🛠
+Integration:
 
 Binde die Library einfach in dein Projekt ein: HTML
 <script src="path/to/cipher.js"></script>
 
-📖 API Referenz
+'API' Referenz xD
 
-    Basisfunktionen Cipher.encrypt(element, options)
-
-Ersetzt den Text eines Elements sofort durch zufällige Zeichen des gewählten Charsets.
-
-Optionen: { mode: 'black-ice' }
-
-Cipher.decrypt(element, targetText, duration, callback)
-
-Der klassische "Hacker-Reveal"-Effekt.
-
-Parameter:
-
-    targetText: Der finale Text (null = nimmt data-cipher-original).
-
-    duration: Animationszeit in ms.
-
-    Fortgeschrittene Animationen Cipher.encryptWithStyle(element, options)
-
-Das Herzstück für komplexe UI-Animationen. JavaScript
-
-Cipher.encryptWithStyle(myElement, { style: 'vortex', // 'waterfall', 'wave', 'brownian', etc. mode: 'agent-smith', // Charset duration: 2000, speed: 1.5, // Multiplikator für die Frequenz loop: false, onUpdate: (p) => console.log(Fortschritt: ${p * 100}%), onComplete: () => console.log('Terminal gesperrt.') });
-
-    Neural Infection (v2.2.0)
-
-Simuliert einen Virusangriff auf bestehende Texte, ohne das Layout zu sprengen. JavaScript
-
-Cipher.infect(el, { type: 'diffusion', // 'linear' (Top-Down), 'chaos' (Sinus-basiert) spread: 12, // Wie viele Zeichen pro Frame mutieren mode: 'glitch' });
-
-🎨 Styles & Charsets Style Beschreibung left-to-right Klassischer Scan von links nach rechts. vortex Die Verschlüsselung startet in der Mitte und zieht nach außen. waterfall Zeichen "fallen" von oben nach unten in den neuen Status. wave Eine sinusförmige Welle bewegt sich durch den Text. brownian Zufällige Partikelbewegung (organisches Rauschen). ⚡ Quick-Start Tutorial: Der "Login-Reveal"
-
-Um einen eindrucksvollen Login-Effekt zu erzeugen, kombiniere encrypt und decrypt: JavaScript
+Login-Effekt:
 
 const loginText = document.querySelector('#status');
+Cipher.encrypt(loginText, { mode: 'black-ice' }); // 1. Text sofort verschleiern 
+setTimeout(() => { Cipher.decrypt(loginText, "ACCESS GRANTED", 1500, () => { loginText.classList.add('glow-green'); }); }, 1000); // 2. Nach Verzögerung "entschlüsseln" 
 
-// 1. Text sofort verschleiern Cipher.encrypt(loginText, { mode: 'black-ice' });
+oder so:
 
-// 2. Nach Verzögerung "entschlüsseln" setTimeout(() => { Cipher.decrypt(loginText, "ACCESS GRANTED", 1500, () => { loginText.classList.add('glow-green'); }); }, 1000);
+Cipher.encryptWithStyle(myElement, 
+                        { style: 'vortex', mode: 'agent-smith', duration: 2000, speed: 1.5, loop: false,     
+                          onUpdate: (p) => console.log(Fortschritt: ${p * 100}%),     
+                          onComplete: () => console.log('Terminal gesperrt.')         
+                        });
 
-Customizing: Du kannst eigene Charsets via Cipher.charsets['mein-name'] = "12345ABCDE" hinzufügen.
+
+"Virusangriff" auf bestehende Texte:
+
+Cipher.infect(el, { type: 'diffusion', spread: 12, mode: 'glitch' }); 
+
+
+Styles & Charsets:
+Du kannst eigene Charsets via Cipher.charsets['mein-name'] = "12345ABCDE" hinzufügen.
+
+style:
+'left-to-right' Klassischer Scan von links nach rechts. 
+'vortex' Die Verschlüsselung startet in der Mitte und zieht nach außen. 
+'waterfall' Zeichen "fallen" von oben nach unten in den neuen Status. 
+'wave' Eine sinusförmige Welle bewegt sich durch den Text. 
+'brownian' Zufällige Partikelbewegung (organisches Rauschen).
+
+
