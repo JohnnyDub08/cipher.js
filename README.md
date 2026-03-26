@@ -3,30 +3,28 @@ shitty ai demo here: https://johnnydub08.github.io/cipher.js/
 Just check it for yourself..it's written quite robust and behaves similar to anime.js in some regards.
 Can be a nice little special effect for encryption or matrix themed webdesigns for you or your customers. :)
 
-🔐 cipher.js
+cipher.js
 
 Animated ASCII cipher effects for the DOM
 Zero dependencies · 21+ Charsets · 7 Animation Styles
 
 Transform text into living ASCII art – degrade, encrypt, animate.
 
-✨ Features
+ Features
 
-    🎭 3 Cyberpunk Modes – Laughing Man (Ghost in the Shell), Agent Smith (Matrix), Black ICE (Neuromancer)
+    3 Cyberpunk Modes – Laughing Man (Ghost in the Shell), Agent Smith (Matrix), Black ICE (Neuromancer)
 
-    📦 18 Built‑in Charsets – Latin, symbols, technical, math, Greek, Cyrillic, katakana, Arabic, Devanagari, emoji, geometric, box drawing, blocks, Braille, runic, Egyptian, music, arrows
+    18 Built‑in Charsets – Latin, symbols, technical, math, Greek, Cyrillic, katakana, Arabic, Devanagari, emoji, geometric, box drawing, blocks, Braille, runic, Egyptian, music, arrows
 
-    🌀 7 Animation Styles – left‑to‑right, right‑to‑left, waterfall, vortex, brownian, wave, pingpong
+    7 Animation Styles – left‑to‑right, right‑to‑left, waterfall, vortex, brownian, wave, pingpong
 
-    🧬 Degradation / Neural Infection Engine (Diffusion, Linear, Chaos) – characters evolve through families (lines → curves → circles)
+    Degradation / Neural Infection Engine (Diffusion, Linear, Chaos) – characters evolve through families (lines → curves → circles)
 
-    🖼️ Wall Patterns – cover text with iconic ASCII murals, then reveal
+    Full Animation Control – easing, loop, delay, speed, direction, callbacks
 
-    ⏱️ Full Animation Control – easing, loop, delay, speed, direction, callbacks
+    Sequence & Parallel – chain or run multiple animations together
 
-    🔁 Sequence & Parallel – chain or run multiple animations together
-
-    ⏸️ Pause / Resume / Reverse – full control over running animations
+    Pause / Resume / Reverse – full control over running animations
 
 
 JavaScript-Library (~3.2kb gzipped) zur Simulation von digitalem Zerfall, ASCII-Animationen und Cyberpunk-Verschlüsselungseffekten. 
