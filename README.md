@@ -1,4 +1,4 @@
-shitty lazy ai (i'm sorry xD) demo here: https://johnnydub08.github.io/cipher.js/
+shitty (i'm sorry xD) demo here: https://johnnydub08.github.io/cipher.js/
 
 Just check it for yourself..it's written quite robust and behaves similar to anime.js
 
